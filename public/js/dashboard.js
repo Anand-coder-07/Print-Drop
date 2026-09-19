@@ -1,0 +1,436 @@
+(() => {
+  'use strict';
+
+  // --- Auth Check ---
+  fetch('/api/auth/check')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.authenticated) {
+        window.location.href = '/login.html';
+        return;
+      }
+      document.getElementById('navUser').textContent = data.username;
+      init();
+    })
+    .catch(() => {
+      window.location.href = '/login.html';
+    });
+
+  // --- State ---
+  let uploads = []; // Array of upload groups
+
+  // --- DOM ---
+  const queueList = document.getElementById('queueList');
+  const emptyState = document.getElementById('emptyState');
+  const statPending = document.getElementById('statPending');
+  const statFiles = document.getElementById('statFiles');
+  const statStorage = document.getElementById('statStorage');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const modalClose = document.getElementById('modalClose');
+  const modalPrintBtn = document.getElementById('modalPrintBtn');
+  const modalDirectViewBtn = document.getElementById('modalDirectViewBtn');
+  let activeModalFile = null;
+  const toast = document.getElementById('toast');
+  const toastTitle = document.getElementById('toastTitle');
+  const toastMessage = document.getElementById('toastMessage');
+
+  // --- Helpers ---
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function timeAgo(dateStr) {
+    const now = new Date();
+    const then = new Date(dateStr + (dateStr.endsWith('Z') ? '' : 'Z'));
+    const diffMs = now - then;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    return `${diffHr}h ${diffMin % 60}m ago`;
+  }
+
+  function getFileIcon(type) {
+    if (type === 'application/pdf') return '📕';
+    if (type === 'image/jpeg') return '🖼️';
+    if (type === 'image/png') return '🖼️';
+    return '📄';
+  }
+
+  function getFileTypeLabel(type) {
+    if (type === 'application/pdf') return 'PDF';
+    if (type === 'image/jpeg') return 'JPG';
+    if (type === 'image/png') return 'PNG';
+    return 'File';
+  }
+
+  // --- Notification Sound ---
+  let audioCtx = null;
+  function playNotificationSound() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.4);
+    } catch (e) {
+      // Audio not supported
+    }
+  }
+
+  // --- Toast ---
+  let toastTimeout = null;
+  function showToast(title, message) {
+    toastTitle.textContent = title;
+    toastMessage.textContent = message;
+    toast.classList.add('active');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => toast.classList.remove('active'), 4000);
+  }
+
+  // --- Stats ---
+  function updateStats() {
+    let totalFiles = 0;
+    let totalSize = 0;
+    for (const group of uploads) {
+      totalFiles += group.files.length;
+      for (const f of group.files) {
+        totalSize += f.fileSize || 0;
+      }
+    }
+    statPending.textContent = uploads.length;
+    statFiles.textContent = totalFiles;
+    statStorage.textContent = formatSize(totalSize);
+  }
+
+  // --- Render Queue ---
+  function renderQueue() {
+    // Remove existing cards (not the empty state)
+    const existingCards = queueList.querySelectorAll('.upload-card');
+    existingCards.forEach(card => card.remove());
+
+    if (uploads.length === 0) {
+      emptyState.style.display = '';
+    } else {
+      emptyState.style.display = 'none';
+      for (const group of uploads) {
+        const card = createCard(group);
+        queueList.appendChild(card);
+      }
+    }
+
+    updateStats();
+  }
+
+  function createCard(group) {
+    const card = document.createElement('div');
+    card.className = 'upload-card';
+    card.dataset.groupId = group.groupId;
+
+    const fileCount = group.files.length;
+    const totalSize = group.files.reduce((sum, f) => sum + (f.fileSize || 0), 0);
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-code">
+          <span class="code-badge">${group.code}</span>
+          <div class="code-meta">
+            <span class="code-file-count">${fileCount} file${fileCount > 1 ? 's' : ''} • ${formatSize(totalSize)}</span>
+            <span class="code-time">${timeAgo(group.createdAt)}</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn print-btn" data-action="print-all" data-group="${group.groupId}" title="Direct Print all files">
+            🖨️ <span class="btn-label">Print</span>
+          </button>
+          <button class="action-btn done-btn" data-action="done" data-group="${group.groupId}" title="Mark as printed">
+            ✅ <span class="btn-label">Done</span>
+          </button>
+          <button class="action-btn delete-btn" data-action="delete" data-group="${group.groupId}" title="Delete upload">
+            🗑️ <span class="btn-label">Delete</span>
+          </button>
+        </div>
+      </div>
+      <div class="card-files">
+        ${group.files.map(f => `
+          <div class="card-file" data-file-id="${f.id}">
+            <span class="card-file-icon">${getFileIcon(f.fileType)}</span>
+            <div class="card-file-info">
+              <div class="card-file-name">${f.originalName}</div>
+              <div class="card-file-meta">${getFileTypeLabel(f.fileType)} • ${formatSize(f.fileSize)}</div>
+            </div>
+            <div class="card-file-actions">
+              <button class="file-action-btn print-btn" data-action="print" data-file-id="${f.id}" data-file-name="${f.originalName}" data-file-type="${f.fileType}" title="Direct Print">🖨️</button>
+              <button class="file-action-btn direct-view-btn" data-action="direct-view" data-file-id="${f.id}" title="Direct View in New Tab">↗️</button>
+              <button class="file-action-btn preview-btn" data-action="preview" data-file-id="${f.id}" data-file-name="${f.originalName}" data-file-type="${f.fileType}" title="Quick Preview">👁️</button>
+              <button class="file-action-btn download-btn" data-action="download" data-file-id="${f.id}" title="Download">⬇️</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    return card;
+  }
+
+  // --- Direct View & Direct Print ---
+
+  function directViewFile(fileId) {
+    window.open(`/api/uploads/${fileId}/preview`, '_blank');
+  }
+
+  function directPrintFile(fileId, fileType, fileName) {
+    const url = `/api/uploads/${fileId}/preview`;
+    showToast('🖨️ Direct Print', `Opening print for ${fileName || 'file'}...`);
+
+    if (fileType && fileType.startsWith('image/')) {
+      let printFrame = document.getElementById('printFrame');
+      if (printFrame) printFrame.remove();
+
+      printFrame = document.createElement('iframe');
+      printFrame.id = 'printFrame';
+      printFrame.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none;visibility:hidden;';
+      document.body.appendChild(printFrame);
+
+      const doc = printFrame.contentWindow.document;
+      doc.open();
+      doc.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${fileName || 'Print'}</title>
+          <style>
+            @page { margin: 10mm; }
+            body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+            img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+          </style>
+        </head>
+        <body>
+          <img src="${url}" onload="setTimeout(() => { window.focus(); window.print(); }, 250);">
+        </body>
+        </html>
+      `);
+      doc.close();
+    } else {
+      // PDF or general document
+      let printFrame = document.getElementById('printFrame');
+      if (printFrame) printFrame.remove();
+
+      printFrame = document.createElement('iframe');
+      printFrame.id = 'printFrame';
+      printFrame.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none;visibility:hidden;';
+      document.body.appendChild(printFrame);
+
+      printFrame.src = url;
+      printFrame.onload = () => {
+        setTimeout(() => {
+          try {
+            printFrame.contentWindow.focus();
+            printFrame.contentWindow.print();
+          } catch (err) {
+            // Fallback: Open in new tab which has built-in print dialog
+            const pWin = window.open(url, '_blank');
+            if (pWin) pWin.focus();
+          }
+        }, 300);
+      };
+    }
+  }
+
+  function printAllFiles(groupId) {
+    const group = uploads.find(u => u.groupId === groupId);
+    if (!group || !group.files || group.files.length === 0) return;
+
+    showToast('🖨️ Direct Print', `Sending ${group.files.length} file(s) to printer for Code ${group.code}...`);
+
+    group.files.forEach((f, idx) => {
+      setTimeout(() => {
+        directPrintFile(f.id, f.fileType, f.originalName);
+      }, idx * 1200);
+    });
+  }
+
+  // --- Actions ---
+  async function markAsPrinted(groupId) {
+    try {
+      const res = await fetch(`/api/uploads/group/${groupId}/status`, { method: 'PATCH' });
+      if (res.ok) {
+        removeCardWithAnimation(groupId);
+      }
+    } catch (err) {
+      console.error('Failed to mark as printed:', err);
+    }
+  }
+
+  async function deleteUpload(groupId) {
+    if (!confirm('Delete this upload? The files will be permanently removed.')) return;
+    try {
+      const res = await fetch(`/api/uploads/group/${groupId}`, { method: 'DELETE' });
+      if (res.ok) {
+        removeCardWithAnimation(groupId);
+      }
+    } catch (err) {
+      console.error('Failed to delete:', err);
+    }
+  }
+
+  function removeCardWithAnimation(groupId) {
+    uploads = uploads.filter(u => u.groupId !== groupId);
+    const card = queueList.querySelector(`[data-group-id="${groupId}"]`);
+    if (card) {
+      card.classList.add('removing');
+      setTimeout(() => {
+        card.remove();
+        if (uploads.length === 0) {
+          emptyState.style.display = '';
+        }
+      }, 400);
+    }
+    updateStats();
+  }
+
+  function previewFile(fileId, fileName, fileType) {
+    activeModalFile = { fileId, fileName, fileType };
+    modalTitle.textContent = fileName;
+    modalBody.innerHTML = '';
+
+    if (fileType === 'application/pdf') {
+      const embed = document.createElement('embed');
+      embed.src = `/api/uploads/${fileId}/preview`;
+      embed.type = 'application/pdf';
+      modalBody.appendChild(embed);
+    } else if (fileType.startsWith('image/')) {
+      const img = document.createElement('img');
+      img.src = `/api/uploads/${fileId}/preview`;
+      img.alt = fileName;
+      modalBody.appendChild(img);
+    }
+
+    modalOverlay.classList.add('active');
+  }
+
+  function closeModal() {
+    modalOverlay.classList.remove('active');
+    modalBody.innerHTML = '';
+    activeModalFile = null;
+  }
+
+  function downloadFile(fileId) {
+    window.open(`/api/uploads/${fileId}/download`, '_blank');
+  }
+
+  // --- Event Delegation ---
+  queueList.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+
+    if (action === 'print-all') {
+      printAllFiles(btn.dataset.group);
+    } else if (action === 'print') {
+      directPrintFile(btn.dataset.fileId, btn.dataset.fileType, btn.dataset.fileName);
+    } else if (action === 'direct-view') {
+      directViewFile(btn.dataset.fileId);
+    } else if (action === 'preview') {
+      previewFile(btn.dataset.fileId, btn.dataset.fileName, btn.dataset.fileType);
+    } else if (action === 'download') {
+      downloadFile(btn.dataset.fileId);
+    } else if (action === 'done') {
+      markAsPrinted(btn.dataset.group);
+    } else if (action === 'delete') {
+      deleteUpload(btn.dataset.group);
+    }
+  });
+
+  // Modal actions
+  if (modalPrintBtn) {
+    modalPrintBtn.addEventListener('click', () => {
+      if (activeModalFile) {
+        directPrintFile(activeModalFile.fileId, activeModalFile.fileType, activeModalFile.fileName);
+      }
+    });
+  }
+
+  if (modalDirectViewBtn) {
+    modalDirectViewBtn.addEventListener('click', () => {
+      if (activeModalFile) {
+        directViewFile(activeModalFile.fileId);
+      }
+    });
+  }
+
+  // Modal close
+  modalClose.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login.html';
+  });
+
+  // --- Init ---
+  async function init() {
+    // Fetch existing uploads
+    try {
+      const res = await fetch('/api/uploads');
+      const data = await res.json();
+      uploads = data.uploads || [];
+      renderQueue();
+    } catch (err) {
+      console.error('Failed to fetch uploads:', err);
+    }
+
+    // Socket.IO real-time
+    const socket = io();
+
+    socket.on('new-upload', (data) => {
+      // Add to the beginning of the list
+      uploads.unshift({
+        groupId: data.groupId,
+        code: data.code,
+        createdAt: data.createdAt,
+        files: data.files,
+      });
+      renderQueue();
+
+      // Notification
+      playNotificationSound();
+      showToast('📥 New Upload', `Code ${data.code} — ${data.files.length} file(s)`);
+    });
+
+    socket.on('upload-removed', (data) => {
+      removeCardWithAnimation(data.groupId);
+    });
+
+    // Update time-ago every 30 seconds
+    setInterval(() => {
+      document.querySelectorAll('.code-time').forEach(el => {
+        const card = el.closest('.upload-card');
+        if (card) {
+          const groupId = card.dataset.groupId;
+          const group = uploads.find(u => u.groupId === groupId);
+          if (group) {
+            el.textContent = timeAgo(group.createdAt);
+          }
+        }
+      });
+    }, 30000);
+  }
+})();
