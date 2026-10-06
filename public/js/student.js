@@ -22,6 +22,28 @@
 
   // --- State ---
   let selectedFiles = [];
+  const shopSlug = window.location.pathname.match(/^\/s\/([^/]+)/)?.[1];
+
+  async function loadShopName() {
+    const shopName = document.getElementById('shopName');
+    if (!shopName) return;
+    try {
+      const endpoint = shopSlug
+        ? `/api/shops/${encodeURIComponent(shopSlug)}`
+        : '/api/shops/default';
+      const response = await fetch(endpoint);
+      if (!response.ok) return;
+      const data = await response.json();
+      if (data.shop?.name) {
+        shopName.textContent = data.shop.name;
+        document.title = `${data.shop.name} — PrintDrop`;
+      }
+    } catch (error) {
+      console.error('Failed to load shop name:', error);
+    }
+  }
+
+  loadShopName();
 
   // --- Helpers ---
   function formatSize(bytes) {
@@ -31,9 +53,9 @@
   }
 
   function getFileIcon(type) {
-    if (type === 'application/pdf') return '📕';
-    if (type.startsWith('image/')) return '🖼️';
-    return '📄';
+    if (type === 'application/pdf') return 'PDF';
+    if (type.startsWith('image/')) return 'IMG';
+    return 'FILE';
   }
 
   function getExtension(name) {
@@ -66,7 +88,7 @@
       const item = document.createElement('div');
       item.className = 'file-item';
       item.innerHTML = `
-        <span class="file-icon">${getFileIcon(file.type)}</span>
+        <span class="file-icon file-type-icon">${getFileIcon(file.type)}</span>
         <div class="file-details">
           <div class="file-name">${file.name}</div>
           <div class="file-size">${formatSize(file.size)}</div>
@@ -158,7 +180,7 @@
       resetUploadUI();
     });
 
-    xhr.open('POST', '/api/upload');
+    xhr.open('POST', '/api/upload' + (shopSlug ? `?shop=${encodeURIComponent(shopSlug)}` : ''));
     xhr.send(formData);
   }
 

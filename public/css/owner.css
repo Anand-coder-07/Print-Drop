@@ -1,0 +1,119 @@
+.owner-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.owner-card {
+  width: min(100%, 460px);
+  padding: 28px;
+  background: var(--bg-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.owner-back {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.owner-field {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 14px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.owner-field input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  outline: none;
+}
+
+.owner-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.owner-field small {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.owner-submit {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.owner-submit:hover { background: var(--accent-hover); }
+.owner-submit:disabled { opacity: .65; cursor: wait; }
+
+.owner-error {
+  display: none;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-xs);
+  background: var(--error-soft);
+  color: var(--error);
+  font-size: 13px;
+}
+
+.owner-error.active { display: block; }
+
+.owner-success {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: var(--radius-xs);
+  background: var(--success-soft);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.owner-success a:not(.owner-submit) {
+  color: var(--accent-hover);
+  overflow-wrap: anywhere;
+}
+
+.owner-dashboard-link { margin-top: 8px; }
+
+.login-register-link {
+  margin-top: 18px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.login-register-link a { color: var(--accent-hover); font-weight: 600; }
+
+@media (max-width: 480px) {
+  .owner-page { padding: 12px; }
+  .owner-card { padding: 22px 18px; }
+}

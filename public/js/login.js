@@ -20,6 +20,7 @@
 
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
+    const shop = new URLSearchParams(window.location.search).get('shop') || undefined;
 
     if (!username || !password) {
       showError('Please enter both username and password.');
@@ -30,7 +31,7 @@
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, shop }),
       });
 
       const data = await res.json();

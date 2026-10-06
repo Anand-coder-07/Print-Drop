@@ -10,6 +10,10 @@
         return;
       }
       document.getElementById('navUser').textContent = data.username;
+      if (data.shop?.name) document.querySelector('.nav-title').textContent = data.shop.name;
+      document.getElementById('ownerShopName').textContent = data.shop?.name || 'Your shop';
+      const qrImg = document.getElementById('qrImg');
+      if (qrImg && data.shop?.slug) qrImg.src = `/api/shops/${encodeURIComponent(data.shop.slug)}/qr.png`;
       init();
     })
     .catch(() => {
@@ -55,10 +59,9 @@
   }
 
   function getFileIcon(type) {
-    if (type === 'application/pdf') return '📕';
-    if (type === 'image/jpeg') return '🖼️';
-    if (type === 'image/png') return '🖼️';
-    return '📄';
+    if (type === 'application/pdf') return 'PDF';
+    if (type === 'image/jpeg' || type === 'image/png') return 'IMG';
+    return 'FILE';
   }
 
   function getFileTypeLabel(type) {
@@ -151,29 +154,29 @@
         </div>
         <div class="card-actions">
           <button class="action-btn print-btn" data-action="print-all" data-group="${group.groupId}" title="Direct Print all files">
-            🖨️ <span class="btn-label">Print</span>
+            <span class="btn-label">Print</span>
           </button>
           <button class="action-btn done-btn" data-action="done" data-group="${group.groupId}" title="Mark as printed">
-            ✅ <span class="btn-label">Done</span>
+            <span class="btn-label">Complete</span>
           </button>
           <button class="action-btn delete-btn" data-action="delete" data-group="${group.groupId}" title="Delete upload">
-            🗑️ <span class="btn-label">Delete</span>
+            <span class="btn-label">Remove</span>
           </button>
         </div>
       </div>
       <div class="card-files">
         ${group.files.map(f => `
           <div class="card-file" data-file-id="${f.id}">
-            <span class="card-file-icon">${getFileIcon(f.fileType)}</span>
+            <span class="card-file-icon file-type-icon">${getFileIcon(f.fileType)}</span>
             <div class="card-file-info">
               <div class="card-file-name">${f.originalName}</div>
               <div class="card-file-meta">${getFileTypeLabel(f.fileType)} • ${formatSize(f.fileSize)}</div>
             </div>
             <div class="card-file-actions">
-              <button class="file-action-btn print-btn" data-action="print" data-file-id="${f.id}" data-file-name="${f.originalName}" data-file-type="${f.fileType}" title="Direct Print">🖨️</button>
-              <button class="file-action-btn direct-view-btn" data-action="direct-view" data-file-id="${f.id}" title="Direct View in New Tab">↗️</button>
-              <button class="file-action-btn preview-btn" data-action="preview" data-file-id="${f.id}" data-file-name="${f.originalName}" data-file-type="${f.fileType}" title="Quick Preview">👁️</button>
-              <button class="file-action-btn download-btn" data-action="download" data-file-id="${f.id}" title="Download">⬇️</button>
+              <button class="file-action-btn print-btn" data-action="print" data-file-id="${f.id}" data-file-name="${f.originalName}" data-file-type="${f.fileType}" title="Send to printer">P</button>
+              <button class="file-action-btn direct-view-btn" data-action="direct-view" data-file-id="${f.id}" title="Open separately">↗</button>
+              <button class="file-action-btn preview-btn" data-action="preview" data-file-id="${f.id}" data-file-name="${f.originalName}" data-file-type="${f.fileType}" title="Quick preview">View</button>
+              <button class="file-action-btn download-btn" data-action="download" data-file-id="${f.id}" title="Download">↓</button>
             </div>
           </div>
         `).join('')}
@@ -191,7 +194,7 @@
 
   function directPrintFile(fileId, fileType, fileName) {
     const url = `/api/uploads/${fileId}/preview`;
-    showToast('🖨️ Direct Print', `Opening print for ${fileName || 'file'}...`);
+    showToast('Print request', `Opening print for ${fileName || 'file'}...`);
 
     if (fileType && fileType.startsWith('image/')) {
       let printFrame = document.getElementById('printFrame');
@@ -251,7 +254,7 @@
     const group = uploads.find(u => u.groupId === groupId);
     if (!group || !group.files || group.files.length === 0) return;
 
-    showToast('🖨️ Direct Print', `Sending ${group.files.length} file(s) to printer for Code ${group.code}...`);
+    showToast('Print request', `Sending ${group.files.length} file(s) to printer for code ${group.code}...`);
 
     group.files.forEach((f, idx) => {
       setTimeout(() => {
@@ -385,6 +388,27 @@
     window.location.href = '/login.html';
   });
 
+  document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+    const confirmed = window.confirm(
+      'Delete this account permanently? The shop, owner login, all uploaded files, and QR access will be deleted.'
+    );
+    if (!confirmed) return;
+
+    const button = document.getElementById('deleteAccountBtn');
+    button.disabled = true;
+    button.textContent = 'Deleting...';
+    try {
+      const response = await fetch('/api/auth/account', { method: 'DELETE' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Account could not be deleted');
+      window.location.href = '/login.html?deleted=1';
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = 'Delete account';
+      showToast('Delete failed', error.message);
+    }
+  });
+
   // --- Init ---
   async function init() {
     // Fetch existing uploads
@@ -397,27 +421,19 @@
       console.error('Failed to fetch uploads:', err);
     }
 
-    // Socket.IO real-time
-    const socket = io();
-
-    socket.on('new-upload', (data) => {
-      // Add to the beginning of the list
-      uploads.unshift({
-        groupId: data.groupId,
-        code: data.code,
-        createdAt: data.createdAt,
-        files: data.files,
-      });
-      renderQueue();
-
-      // Notification
-      playNotificationSound();
-      showToast('📥 New Upload', `Code ${data.code} — ${data.files.length} file(s)`);
-    });
-
-    socket.on('upload-removed', (data) => {
-      removeCardWithAnimation(data.groupId);
-    });
+    // Vercel does not support durable WebSocket connections; poll instead.
+    setInterval(async () => {
+      try {
+        const response = await fetch('/api/uploads');
+        if (!response.ok) return;
+        const next = (await response.json()).uploads || [];
+        if (JSON.stringify(next) !== JSON.stringify(uploads)) {
+          if (next.length > uploads.length) playNotificationSound();
+          uploads = next;
+          renderQueue();
+        }
+      } catch (err) { console.debug('Queue polling failed', err); }
+    }, 5000);
 
     // Update time-ago every 30 seconds
     setInterval(() => {

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PrintDrop shop owner sign up and login">
+  <title>PrintDrop — Owner Account</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/owner.css">
+</head>
+<body>
+  <main class="owner-page">
+    <section class="owner-card">
+      <a class="owner-back" href="/login.html">← Back to staff login</a>
+      <div class="login-header">
+        <div class="login-logo">
+          <div class="login-logo-icon" aria-hidden="true">PD</div>
+          <span class="login-logo-text">PrintDrop</span>
+        </div>
+        <p class="login-subtitle">Manage your print shop online</p>
+      </div>
+
+      <div class="owner-error" id="ownerError" role="alert"></div>
+
+      <form id="ownerSignupForm">
+        <label class="owner-field">Shop name
+          <input id="signupName" type="text" maxlength="100" required placeholder="Campus Print Shop">
+        </label>
+        <label class="owner-field">Username
+          <input id="signupUsername" type="text" maxlength="80" required autocomplete="username" placeholder="Create a unique username">
+          <small>This username will be used for login.</small>
+        </label>
+        <label class="owner-field">Password
+          <input id="signupPassword" type="password" minlength="8" maxlength="200" required autocomplete="new-password">
+          <small>Minimum 8 characters.</small>
+        </label>
+        <button class="owner-submit" type="submit">Create shop account</button>
+      </form>
+
+      <div class="owner-success" id="ownerSuccess" hidden>
+        <strong>Your shop is ready.</strong>
+        <p id="successMessage"></p>
+        <a id="uploadLink" target="_blank" rel="noopener"></a>
+        <a id="qrLink" target="_blank" rel="noopener">Download QR code again</a>
+        <a class="owner-submit owner-dashboard-link" href="/dashboard.html">Open dashboard</a>
+      </div>
+    </section>
+  </main>
+  <script src="/js/owner.js"></script>
+</body>
+</html>
