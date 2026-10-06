@@ -766,8 +766,7 @@ body {
 }
 
 .qr-feature {
-  position: sticky;
-  top: 18px;
+  position: relative;
   z-index: 4;
   display: flex;
   align-items: center;
