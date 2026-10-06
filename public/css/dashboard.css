@@ -900,6 +900,63 @@ body {
   margin-top: 2px;
 }
 
+/* ========== POLISHED OWNER STUDIO ========== */
+:root {
+  --bg: #f7f5ef; --bg-white: #fffdf9; --bg-hover: #f0eee6;
+  --border: #dfe3dd; --border-light: #ebe8df; --text: #18262a;
+  --text-secondary: #667274; --text-muted: #8b9693; --accent: #ff795d;
+  --accent-hover: #e4644c; --accent-soft: rgba(255,121,93,.12);
+  --success: #187d70; --success-soft: rgba(24,125,112,.11);
+  --warning: #c38a28; --warning-soft: rgba(195,138,40,.12);
+  --shadow-sm: 0 4px 14px rgba(24,38,42,.05); --shadow-md: 0 18px 42px rgba(24,38,42,.1);
+}
+body { background: radial-gradient(circle at 100% 0, rgba(255,121,93,.13), transparent 27rem), var(--bg); }
+.app { max-width: 1120px; padding: 28px 28px 44px; }
+.navbar { padding: 13px 18px; border-radius: 14px; background: rgba(255,253,249,.88); box-shadow: var(--shadow-sm); }
+.nav-logo { width: 38px; height: 38px; border-radius: 12px; background: #18262a; color: #d9f26c; }
+.nav-title { font: 700 21px 'Space Grotesk', 'Inter', sans-serif; letter-spacing: -.05em; }
+.nav-user { padding-right: 8px; }
+.nav-btn { border-radius: 9px; padding: 9px 15px; }
+.owner-welcome { position: relative; overflow: hidden; padding: 38px 34px; border: 0; border-radius: 20px; background: #18262a; color: #fff; text-align: left; box-shadow: var(--shadow-md); }
+.owner-welcome::after { content: '✦'; position: absolute; right: 38px; top: 16px; color: #d9f26c; font-size: 110px; opacity: .12; }
+.owner-welcome-label { color: #a7b4af; font: 11px 'DM Mono', monospace; letter-spacing: .12em; }
+.owner-welcome h1 { position: relative; z-index: 1; margin: 8px 0 0; color: #fffdf9; font: 700 clamp(31px,5vw,52px)/1 'Space Grotesk', 'Inter', sans-serif; letter-spacing: -.06em; }
+.stats-bar { gap: 16px; margin: 20px 0 34px; }
+.stat-card { position: relative; overflow: hidden; padding: 22px 22px 20px; border-radius: 16px; text-align: left; background: rgba(255,253,249,.9); box-shadow: var(--shadow-sm); }
+.stat-card::after { content: ''; position: absolute; width: 70px; height: 70px; right: -22px; bottom: -27px; border-radius: 50%; background: var(--accent-soft); }
+.stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.stat-value { font: 700 34px 'DM Mono', monospace; }
+.stat-label { margin-top: 6px; font: 10px 'DM Mono', monospace; letter-spacing: .09em; }
+.queue-header { margin-bottom: 14px; }
+.queue-title { font: 700 22px 'Space Grotesk', 'Inter', sans-serif; letter-spacing: -.04em; }
+.queue-subtitle { font: 11px 'DM Mono', monospace; }
+.upload-card { border-radius: 16px; box-shadow: var(--shadow-sm); }
+.upload-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.card-header { padding: 18px 21px; }
+.code-badge { color: var(--accent); font: 700 24px 'DM Mono', monospace; }
+.action-btn { border-radius: 8px; }
+.card-file { border-radius: 10px; }
+.qr-section { padding: 28px; border-radius: 18px; box-shadow: var(--shadow-sm); }
+.qr-title { font: 700 19px 'Space Grotesk', 'Inter', sans-serif; color: var(--text); }
+.qr-image { border-radius: 14px; box-shadow: inset 0 0 0 1px var(--border-light); }
+.account-section { border-radius: 16px; }
+.empty-state { padding: 86px 20px; border: 1px dashed #bdc8c0; border-radius: 16px; background: rgba(255,253,249,.5); }
+.empty-icon { color: var(--accent); }
+.modal { border-radius: 18px; box-shadow: 0 30px 80px rgba(24,38,42,.25); }
+@media (max-width: 640px) {
+  .app { padding: 16px 14px 30px; }
+  .navbar { padding: 11px 13px; }
+  .nav-user { display: none; }
+  .owner-welcome { padding: 29px 24px; }
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+  .stat-card:last-child { grid-column: 1 / -1; }
+  .card-header { align-items: flex-start; gap: 12px; flex-direction: column; }
+  .card-actions { width: 100%; }
+  .action-btn { flex: 1; justify-content: center; }
+  .card-files { padding: 11px 13px; }
+  .card-file-actions { gap: 2px; }
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .app {
@@ -1178,4 +1235,26 @@ body {
   .login-card {
     padding: 34px 24px;
   }
+}
+
+/* Final studio refinements. */
+.app { max-width: 1120px; padding: 28px 28px 44px; }
+.navbar { padding: 13px 18px; border-radius: 14px; background: rgba(255,253,249,.88); }
+.nav-logo { background: #18262a; color: #d9f26c; }
+.owner-welcome { padding: 38px 34px; border: 0; border-radius: 20px; background: #18262a; text-align: left; box-shadow: var(--shadow-md); }
+.owner-welcome-label { color: #a7b4af; }
+.owner-welcome h1 { color: #fffdf9; }
+.stat-card { padding: 22px; border-radius: 16px; text-align: left; background: rgba(255,253,249,.9); }
+.stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.queue-title { font-size: 22px; }
+.upload-card { border-radius: 16px; }
+.upload-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.qr-section { border-radius: 18px; }
+.empty-state { padding: 86px 20px; border: 1px dashed #bdc8c0; border-radius: 16px; background: rgba(255,253,249,.5); }
+.modal { border-radius: 18px; }
+@media (max-width: 640px) {
+  .app { padding: 16px 14px 30px; }
+  .navbar { padding: 11px 13px; }
+  .owner-welcome { padding: 29px 24px; }
+  .card-actions { width: 100%; }
 }
