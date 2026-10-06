@@ -81,6 +81,33 @@ router.post('/session', async (req, res) => {
   }
 });
 
+router.post('/chunk', async (req, res) => {
+  try {
+    const claims = verifyToken(req.body?.token);
+    const expected = (claims.files || []).find(file => file.upload_id === req.body?.upload_id);
+    const sessionUrl = req.body?.sessionUrl;
+    const start = Number(req.body?.start);
+    const end = Number(req.body?.end);
+    if (!expected || !/^https:\/\/www\.googleapis\.com\/upload\/drive\/v3\/files\?uploadType=resumable&upload_id=/.test(sessionUrl) ||
+      !Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end >= expected.fileSize) {
+      return res.status(400).json({ error: 'Upload details did not match the signed request.' });
+    }
+    const chunk = Buffer.from(req.body?.chunk || '', 'base64');
+    if (chunk.length !== end - start + 1) return res.status(400).json({ error: 'Upload chunk size did not match.' });
+    const response = await fetch(sessionUrl, {
+      method: 'PUT',
+      headers: { 'Content-Length': String(chunk.length), 'Content-Range': `bytes ${start}-${end}/${expected.fileSize}`, 'Content-Type': expected.fileType },
+      body: chunk
+    });
+    const text = await response.text();
+    if (!response.ok && response.status !== 308) return res.status(502).json({ error: 'Google Drive rejected the upload chunk.' });
+    res.status(response.status === 308 ? 200 : response.status).type('json').send(text || JSON.stringify({ complete: true }));
+  } catch (e) {
+    console.error('Drive upload chunk failed:', e.message);
+    res.status(502).json({ error: 'Network error while uploading a file.' });
+  }
+});
+
 router.post('/cleanup', async (req, res) => {
   try {
     const claims = verifyToken(req.body?.token);

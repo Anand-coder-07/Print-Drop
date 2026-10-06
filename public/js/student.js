@@ -169,6 +169,15 @@
   }
 
   // --- Upload ---
+  function bytesToBase64(bytes) {
+    let binary = '';
+    const blockSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += blockSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + blockSize));
+    }
+    return btoa(binary);
+  }
+
   async function driveUpload(file, params, token, onProgress) {
     const sessionResponse = await fetch('/api/upload/session', {
       method: 'POST',
@@ -177,28 +186,35 @@
     });
     const session = await sessionResponse.json();
     if (!sessionResponse.ok) throw new Error(session.error || 'Unable to start file upload.');
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.upload.onprogress = e => e.lengthComputable && onProgress(e.loaded);
-      xhr.onload = () => {
-        let data;
-        try { data = JSON.parse(xhr.responseText); } catch { return reject(new Error('Upload returned an invalid response.')); }
-        if (xhr.status >= 200 && xhr.status < 300) {
-          const publicId = data.id || data.public_id;
-          resolve({
-            ...data,
-            upload_id: params.upload_id,
-            public_id: publicId,
-            secure_url: data.webViewLink || `https://drive.google.com/file/d/${publicId}/view`
-          });
-        }
-        else reject(new Error(data.error || 'Upload failed.'));
-      };
-      xhr.onerror = () => reject(new Error('Network error while uploading a file.'));
-      xhr.open('PUT', session.uploadUrl);
-      xhr.setRequestHeader('Content-Type', file.type || params.fileType);
-      xhr.send(file);
-    });
+    const chunkSize = 2 * 1024 * 1024;
+    let offset = 0;
+    let result;
+    while (offset < file.size) {
+      const end = Math.min(offset + chunkSize, file.size) - 1;
+      const chunk = await file.slice(offset, end + 1).arrayBuffer();
+      const response = await fetch('/api/upload/chunk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          upload_id: params.upload_id,
+          sessionUrl: session.uploadUrl,
+          start: offset,
+          end,
+          chunk: bytesToBase64(new Uint8Array(chunk))
+        })
+      });
+      const text = await response.text();
+      let data;
+      try { data = text ? JSON.parse(text) : {}; } catch { throw new Error('Upload returned an invalid response.'); }
+      if (!response.ok) throw new Error(data.error || 'Upload failed.');
+      offset = end + 1;
+      onProgress(offset);
+      if (data.id) result = data;
+    }
+    const publicId = result?.id || result?.public_id;
+    if (!publicId) throw new Error('Google Drive did not return the uploaded file.');
+    return { ...result, upload_id: params.upload_id, public_id: publicId, secure_url: result.webViewLink || `https://drive.google.com/file/d/${publicId}/view` };
   }
 
   async function uploadFiles() {
