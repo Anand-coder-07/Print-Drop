@@ -3,5 +3,7 @@ cloudinary.config({ cloud_name: process.env.CLOUDINARY_CLOUD_NAME, api_key: proc
 function uploadBuffer(buffer, options = {}) {
   return new Promise((resolve, reject) => cloudinary.uploader.upload_stream({ resource_type: 'auto', folder: 'printdrop', ...options }, (e, r) => e ? reject(e) : resolve(r)).end(buffer));
 }
-function deleteFile(publicId) { return publicId ? cloudinary.uploader.destroy(publicId, { resource_type: 'raw' }) : Promise.resolve(); }
+function deleteFile(publicId, resourceType = 'raw') {
+  return publicId ? cloudinary.uploader.destroy(publicId, { resource_type: resourceType === 'image' ? 'image' : 'raw' }) : Promise.resolve();
+}
 module.exports = { uploadBuffer, deleteFile, cloudinary };

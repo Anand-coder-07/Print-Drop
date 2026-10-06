@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({ username: String, password_hash: String
 userSchema.index({ username: 1, shop_id: 1 }, { unique: true });
 const uploadSchema = new mongoose.Schema({
   id: { type: String, unique: true }, shop_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Shop' },
-  group_id: String, code: String, original_name: String, public_id: String, secure_url: String,
+  group_id: String, code: String, original_name: String, public_id: String, secure_url: String, resource_type: String,
   file_type: String, file_size: Number, status: { type: String, default: 'pending' }
 }, { timestamps: { createdAt: 'created_at', updatedAt: false } });
 uploadSchema.index({ shop_id: 1, status: 1, created_at: -1 });

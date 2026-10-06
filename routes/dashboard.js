@@ -14,12 +14,12 @@ router.get('/:id/:action(preview|download)', async (req, res) => {
 });
 router.patch('/group/:groupId/status', async (req, res) => {
   const files = await Upload.find({ group_id: req.params.groupId, shop_id: req.shopId }); if (!files.length) return res.status(404).json({ error: 'Upload group not found' });
-  await Promise.all(files.map(f => deleteFile(f.public_id).catch(() => null))); await Upload.deleteMany({ group_id: req.params.groupId, shop_id: req.shopId });
+  await Promise.all(files.map(f => deleteFile(f.public_id, f.resource_type || (f.file_type?.startsWith('image/') ? 'image' : 'raw')).catch(() => null))); await Upload.deleteMany({ group_id: req.params.groupId, shop_id: req.shopId });
   res.json({ success: true, message: 'Marked as printed' });
 });
 router.delete('/group/:groupId', async (req, res) => {
   const files = await Upload.find({ group_id: req.params.groupId, shop_id: req.shopId }); if (!files.length) return res.status(404).json({ error: 'Upload group not found' });
-  await Promise.all(files.map(f => deleteFile(f.public_id).catch(() => null))); await Upload.deleteMany({ group_id: req.params.groupId, shop_id: req.shopId });
+  await Promise.all(files.map(f => deleteFile(f.public_id, f.resource_type || (f.file_type?.startsWith('image/') ? 'image' : 'raw')).catch(() => null))); await Upload.deleteMany({ group_id: req.params.groupId, shop_id: req.shopId });
   res.json({ success: true, message: 'Upload deleted' });
 });
 module.exports = router;

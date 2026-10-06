@@ -19,6 +19,8 @@
   // --- Config ---
   const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
   const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
+  const MAX_FILES = 10;
+  const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
   // --- State ---
   let selectedFiles = [];
@@ -78,7 +80,14 @@
     if (!ALLOWED_TYPES.includes(file.type) && !ALLOWED_EXTENSIONS.includes(ext)) {
       return `"${file.name}" is not allowed. Only PDF, JPG, and PNG files are accepted.`;
     }
+    if (file.size > MAX_FILE_SIZE) return `"${file.name}" is too large. Files must be no larger than 25 MB.`;
     return null;
+  }
+
+  function normalizedType(file) {
+    if (ALLOWED_TYPES.includes(file.type)) return file.type;
+    const ext = getExtension(file.name);
+    return ext === '.pdf' ? 'application/pdf' : 'image/' + (ext === '.png' ? 'png' : 'jpeg');
   }
 
   // --- Render File List ---
@@ -120,6 +129,10 @@
       );
       if (alreadyAdded) continue;
 
+      if (selectedFiles.length >= MAX_FILES) {
+        showError(`You can submit up to ${MAX_FILES} files at a time.`);
+        break;
+      }
       selectedFiles.push(file);
     }
 
@@ -135,53 +148,64 @@
   }
 
   // --- Upload ---
-  function uploadFiles() {
+  function cloudinaryUpload(file, params, onProgress) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(params.cloudName)}/${params.resource_type}/upload`;
+      const body = new FormData();
+      body.append('file', file);
+      body.append('api_key', params.api_key);
+      body.append('timestamp', params.timestamp);
+      body.append('folder', params.folder);
+      body.append('public_id', params.public_id);
+      body.append('signature', params.signature);
+      xhr.upload.onprogress = e => e.lengthComputable && onProgress(e.loaded);
+      xhr.onload = () => {
+        let data;
+        try { data = JSON.parse(xhr.responseText); } catch { return reject(new Error('Cloudinary returned an invalid response.')); }
+        if (xhr.status >= 200 && xhr.status < 300) resolve(data);
+        else reject(new Error(data.error?.message || 'Cloudinary upload failed.'));
+      };
+      xhr.onerror = () => reject(new Error('Network error while uploading a file.'));
+      xhr.open('POST', endpoint);
+      xhr.send(body);
+    });
+  }
+
+  async function uploadFiles() {
     if (selectedFiles.length === 0) return;
-
-    const formData = new FormData();
-    selectedFiles.forEach(file => formData.append('files', file));
-
-    const xhr = new XMLHttpRequest();
-
-    // Show progress
+    const files = selectedFiles.slice();
     uploadBtn.style.display = 'none';
     progressSection.classList.add('active');
-
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) {
-        const pct = Math.round((e.loaded / e.total) * 100);
-        progressBar.style.width = pct + '%';
-        progressText.textContent = `Uploading... ${pct}%`;
+    let uploaded = [], session;
+    try {
+      const response = await fetch('/api/upload/signature' + (shopSlug ? `?shop=${encodeURIComponent(shopSlug)}` : ''), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: files.map(file => ({ name: file.name, type: normalizedType(file), size: file.size })) })
+      });
+      session = await response.json();
+      if (!response.ok) throw new Error(session.error || 'Unable to prepare upload.');
+      const loaded = new Array(files.length).fill(0);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i], params = { ...session.files[i], cloudName: session.cloudName };
+        const result = await cloudinaryUpload(file, params, bytes => {
+          loaded[i] = bytes;
+          const pct = Math.round(loaded.reduce((sum, value) => sum + value, 0) / files.reduce((sum, item) => sum + item.size, 0) * 100);
+          progressBar.style.width = pct + '%';
+          progressText.textContent = `Uploading... ${pct}%`;
+        });
+        uploaded.push({ public_id: result.public_id, secure_url: result.secure_url, resourceType: params.resource_type, originalName: params.originalName, fileType: params.fileType, fileSize: params.fileSize });
       }
-    });
-
-    xhr.addEventListener('load', () => {
-      if (xhr.status === 200) {
-        try {
-          const data = JSON.parse(xhr.responseText);
-          showSuccess(data.code);
-        } catch {
-          showError('Unexpected server response.');
-          resetUploadUI();
-        }
-      } else {
-        try {
-          const data = JSON.parse(xhr.responseText);
-          showError(data.error || 'Upload failed.');
-        } catch {
-          showError('Upload failed. Please try again.');
-        }
-        resetUploadUI();
-      }
-    });
-
-    xhr.addEventListener('error', () => {
-      showError('Network error. Please check your connection and try again.');
+      progressText.textContent = 'Saving submission...';
+      const complete = await fetch('/api/upload/complete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: session.token, files: uploaded }) });
+      const data = await complete.json();
+      if (!complete.ok) throw new Error(data.error || 'Upload metadata could not be saved.');
+      showSuccess(data.code);
+    } catch (error) {
+      if (session?.token && uploaded.length) fetch('/api/upload/cleanup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: session.token, publicIds: uploaded.map(file => file.public_id) }) }).catch(() => {});
+      showError(error.message || 'Upload failed. Please try again.');
       resetUploadUI();
-    });
-
-    xhr.open('POST', '/api/upload' + (shopSlug ? `?shop=${encodeURIComponent(shopSlug)}` : ''));
-    xhr.send(formData);
+    }
   }
 
   function showSuccess(code) {

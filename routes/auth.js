@@ -17,7 +17,7 @@ router.post('/login', async (req, res) => {
 router.post('/logout', (req, res) => { clearAuthCookie(res); res.json({ message: 'Logged out successfully' }); });
 router.delete('/account', requireAuth, async (req, res) => {
   const files = await Upload.find({ shop_id: req.shopId });
-  await Promise.all(files.map(f => deleteFile(f.public_id).catch(() => null)));
+  await Promise.all(files.map(f => deleteFile(f.public_id, f.resource_type || (f.file_type?.startsWith('image/') ? 'image' : 'raw')).catch(() => null)));
   await Upload.deleteMany({ shop_id: req.shopId }); await User.deleteMany({ shop_id: req.shopId }); await Shop.deleteOne({ _id: req.shopId });
   clearAuthCookie(res); res.json({ success: true });
 });
