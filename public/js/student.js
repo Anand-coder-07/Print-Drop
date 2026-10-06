@@ -156,7 +156,6 @@
       body.append('file', file);
       body.append('api_key', params.api_key);
       body.append('timestamp', params.timestamp);
-      body.append('folder', params.folder);
       body.append('public_id', params.public_id);
       body.append('signature', params.signature);
       xhr.upload.onprogress = e => e.lengthComputable && onProgress(e.loaded);

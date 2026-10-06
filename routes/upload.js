@@ -32,11 +32,11 @@ router.post('/signature', async (req, res) => {
     const groupId = uuidv4();
     const entries = files.map(file => {
       const resourceType = file.type === 'application/pdf' ? 'raw' : 'image';
-      const publicId = `${groupId}/${uuidv4()}`;
+      const publicId = `printdrop/${groupId}/${uuidv4()}`;
       const timestamp = Math.floor(Date.now() / 1000);
-      const params = { folder: 'printdrop', public_id: publicId, timestamp, resource_type: resourceType };
+      const params = { public_id: publicId, timestamp, resource_type: resourceType };
       // resource_type is used to choose the Cloudinary endpoint, not signed.
-      const signature = cloudinary.utils.api_sign_request({ folder: params.folder, public_id: params.public_id, timestamp }, process.env.CLOUDINARY_API_SECRET);
+      const signature = cloudinary.utils.api_sign_request({ public_id: params.public_id, timestamp }, process.env.CLOUDINARY_API_SECRET);
       return { ...params, signature, api_key: process.env.CLOUDINARY_API_KEY, originalName: String(file.name || '').slice(0, 255), fileType: file.type, fileSize: file.size };
     });
     const token = signToken({ shopId: String(shop._id), shop: shop.slug, groupId, files: entries.map(({ public_id, resource_type, originalName, fileType, fileSize }) => ({ public_id, resource_type, originalName, fileType, fileSize })) });
