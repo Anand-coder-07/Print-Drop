@@ -10,7 +10,6 @@
         return;
       }
       document.getElementById('navUser').textContent = data.username;
-      if (data.shop?.name) document.querySelector('.nav-title').textContent = data.shop.name;
       document.getElementById('ownerShopName').textContent = data.shop?.name || 'Your shop';
       const qrImg = document.getElementById('qrImg');
       if (qrImg && data.shop?.slug) qrImg.src = `/api/shops/${encodeURIComponent(data.shop.slug)}/qr.png`;

@@ -9,6 +9,18 @@
   transition: background .25s ease, box-shadow .25s ease, backdrop-filter .25s ease;
 }
 
+.brand-mark {
+  display: inline-grid;
+  place-items: center;
+}
+
+.brand-mark svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+
 .site-header.is-scrolled {
   background: rgba(247, 245, 239, .82);
   box-shadow: 0 1px 0 rgba(23, 33, 39, .08), 0 10px 28px rgba(23, 33, 39, .06);
