@@ -9,7 +9,7 @@ let lastCleanup = 0;
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 const limit = `${Math.min(100, Math.max(50, parseInt(process.env.MAX_REQUEST_SIZE_MB, 10) || 100))}mb`;
 app.use(express.json({ limit }), express.urlencoded({ extended: true, limit }));
-app.get('/', (req, res) => res.redirect('/login.html'));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(async (req, res, next) => {
   try {
