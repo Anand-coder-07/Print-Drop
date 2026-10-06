@@ -169,7 +169,7 @@
           <button class="action-btn done-btn" data-action="done" data-group="${group.groupId}" title="Mark as printed">
             <span class="btn-label">Complete</span>
           </button>
-          <button class="action-btn delete-btn" data-action="delete" data-group="${group.groupId}" title="Delete upload">
+          <button class="action-btn delete-btn" data-action="delete" data-group="${group.groupId}" title="Remove order" aria-label="Remove order">
             <span class="btn-label">Remove</span>
           </button>
         </div>
@@ -399,16 +399,15 @@
   });
 
   document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
-    const confirmed = window.confirm(
-      'Delete this account permanently? The shop, owner login, all uploaded files, and QR access will be deleted.'
-    );
-    if (!confirmed) return;
+    const password = window.prompt('Enter your shop password to permanently delete this account:');
+    if (password === null) return;
+    if (!password) return showToast('Password required', 'Enter your password to delete the account.');
 
     const button = document.getElementById('deleteAccountBtn');
     button.disabled = true;
     button.textContent = 'Removing...';
     try {
-      const response = await fetch('/api/auth/account', { method: 'DELETE' });
+      const response = await fetch('/api/auth/account', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Account could not be deleted');
       window.location.href = '/login.html?deleted=1';

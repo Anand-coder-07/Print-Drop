@@ -27,6 +27,15 @@
       <h1 id="ownerShopName">Your shop</h1>
     </section>
 
+    <aside class="qr-section qr-feature" aria-label="Customer upload QR code">
+      <div>
+        <p class="qr-kicker">Quick start</p>
+        <h3 class="qr-title">Let students send files</h3>
+        <p class="qr-hint">Scan this code to open your upload page.</p>
+      </div>
+      <div class="qr-image"><img src="/qr.png" alt="Scan to upload files" id="qrImg"></div>
+    </aside>
+
     <!-- Stats -->
     <div class="stats-bar">
       <div class="stat-card">
@@ -60,19 +69,10 @@
       </div>
     </div>
 
-    <!-- QR Code Section -->
-    <div class="qr-section">
-      <h3 class="qr-title">Customer upload link</h3>
-      <div class="qr-image">
-        <img src="/qr.png" alt="Scan to upload files" id="qrImg">
-      </div>
-      <p class="qr-hint">Display this QR code at your counter so customers can send documents</p>
-    </div>
-
     <section class="account-section">
       <h3>Account settings</h3>
       <p>Permanently delete this shop, all submitted files, login account, and QR link.</p>
-      <button class="delete-account-btn" id="deleteAccountBtn" type="button">Delete account</button>
+      <button class="delete-account-btn" id="deleteAccountBtn" type="button" title="Delete account" aria-label="Delete account">⌫</button>
     </section>
   </div>
 

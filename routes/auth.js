@@ -16,6 +16,9 @@ router.post('/login', async (req, res) => {
 });
 router.post('/logout', (req, res) => { clearAuthCookie(res); res.json({ message: 'Logged out successfully' }); });
 router.delete('/account', requireAuth, async (req, res) => {
+  const password = String(req.body?.password || '');
+  const user = await User.findOne({ username: req.user.username, shop_id: req.shopId });
+  if (!password || !user || !(await bcrypt.compare(password, user.password_hash))) return res.status(403).json({ error: 'Password is incorrect.' });
   const files = await Upload.find({ shop_id: req.shopId });
   await Promise.all(files.map(f => deleteFile(f.public_id, f.resource_type || (f.file_type?.startsWith('image/') ? 'image' : 'raw')).catch(() => null)));
   await Upload.deleteMany({ shop_id: req.shopId }); await User.deleteMany({ shop_id: req.shopId }); await Shop.deleteOne({ _id: req.shopId });
