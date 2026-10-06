@@ -1,144 +1,204 @@
-# PrintDrop 🖨️
+# PrintDrop
 
-A local Wi-Fi file relay and printing management system designed for campus print shops and copy centers. Students can quickly upload documents from their phones or laptops via QR code or direct link, while the shop owner manages print jobs in real-time from a dashboard.
+PrintDrop is a simple file-upload system for local print shops.
 
----
+Students scan a shop's QR code, upload their documents, and receive a pickup
+code. The shop owner sees the order in a dashboard, downloads or previews the
+files, and marks the order as completed.
 
-## ✨ Features
+## What the project does
 
-- **📱 Instant Student Upload**: Scan a QR code or visit the local URL to upload files without needing WhatsApp, Bluetooth, or pen drives.
-- **⚡ Dashboard polling**: The queue refreshes every five seconds (compatible with serverless hosting).
-- **🔢 Pickup Codes**: Unique short pickup codes generated for each upload so students can easily identify their prints.
-- **🧹 Automatic Cleanup**: Scheduled background cleanup of uploaded files after a configurable TTL to save disk space and protect student privacy.
-- **🔒 Secure cloud deployment**: MongoDB Atlas stores metadata and private Google Drive stores file assets.
-- **📊 Print Status Tracking**: Manage print jobs (`Pending`, `Printing`, `Completed`) with real-time status feedback.
+- Public landing page at `/`
+- Shop owner signup and login
+- Separate upload link for every shop
+- QR code for each shop's upload link
+- Uploads for PDF, JPG, and PNG files
+- Upload limit between 50 MB and 100 MB per file
+- Chunked uploads for larger files
+- Private Google Drive storage
+- MongoDB storage for shops, users, orders, and file information
+- Owner dashboard with order status and file actions
+- Automatic cleanup of old files
+- Password confirmation before deleting an owner account
+- Sitemap, robots file, favicon, and search metadata
 
----
+## How the flow works
 
-## 🛠️ Tech Stack
+1. A shop owner creates an account.
+2. PrintDrop creates a shop slug and a shop-specific upload URL.
+3. The owner shares the QR code or upload URL with students.
+4. A student selects files and sends them without creating an account.
+5. The browser sends large files in small chunks through the server.
+6. The server uploads those chunks to a private Google Drive file.
+7. PrintDrop saves the order and file details in MongoDB.
+8. The owner sees the order in the dashboard and prints the files.
+9. The owner marks the order complete or deletes it.
+10. Old files are removed after the configured time limit.
 
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB Atlas via Mongoose
-- **File Handling**: Multer memory uploads and Google Drive OAuth2
-- **Security**: Helmet, bcryptjs, signed JWT httpOnly cookies
+## Tech stack
 
----
+- **Node.js and Express** - web server and API routes
+- **MongoDB and Mongoose** - database and data models
+- **Google Drive API** - private file storage
+- **Multer** - handling upload data
+- **JWT in an HTTP-only cookie** - owner authentication
+- **bcryptjs** - password hashing
+- **Helmet** - basic security headers
+- **QRCode** - shop QR code generation
+- **HTML, CSS, and JavaScript** - frontend pages
+- **Vercel** - supported deployment platform
 
-## 🚀 Quick Start
+## Project structure
 
-### 1. Prerequisites
-- [Node.js](https://nodejs.org/) (v16 or newer)
+```text
+server.js              Express app and public routes
+db.js                  MongoDB connection and models
+routes/                Authentication, upload, shop, and dashboard APIs
+middleware/auth.js     JWT authentication middleware
+utils/googleDrive.js   Google Drive upload and file operations
+utils/cleanup.js       Cleanup of expired uploads
+public/                HTML pages, styles, scripts, logo, and manifest
+.env.example           Environment variable template
+vercel.json            Vercel serverless configuration
+```
+
+## Run locally
+
+### Requirements
+
+- Node.js 18 or newer
 - npm
+- MongoDB database
+- Google Drive OAuth credentials
 
-### 2. Installation
+### Install
+
 ```bash
-git clone https://github.com/Anand-coder-07/mini-project.git
-cd mini-project
+git clone https://github.com/Anand-coder-07/Print-Drop.git
+cd Print-Drop
 npm install
 ```
 
-### 3. Configuration
-Copy `.env.example` to `.env`:
+Create a local environment file:
+
+```bash
+copy .env.example .env
+```
+
+On macOS or Linux, use:
+
 ```bash
 cp .env.example .env
 ```
-Configure your environment variables in `.env`:
+
+Add the required values to `.env`, then start the app:
+
+```bash
+npm run dev
+```
+
+For a normal start without the file watcher:
+
+```bash
+npm start
+```
+
+The app will be available at `http://localhost:3000`.
+
+## Important environment variables
+
 ```env
 PORT=3000
-SESSION_SECRET=your-random-secret-key-at-least-32-characters
-NODE_ENV=production
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/printdrop
-GOOGLE_CLIENT_ID=your-oauth-client-id
-GOOGLE_CLIENT_SECRET=your-oauth-client-secret
+NODE_ENV=development
+SESSION_SECRET=use-a-long-random-secret
+MONGODB_URI=your-mongodb-connection-string
+
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_REDIRECT_URI=http://localhost
-GOOGLE_REFRESH_TOKEN=your-oauth-refresh-token
+GOOGLE_REFRESH_TOKEN=your-google-refresh-token
 GOOGLE_DRIVE_FOLDER_ID=
-UPLOAD_TTL_MINUTES=30
+
 BASE_URL=http://localhost:3000
+UPLOAD_TTL_MINUTES=30
 MAX_UPLOAD_FILES=10
-# MAX_FILE_SIZE_MB accepts 50-100; defaults to 80 when omitted
 MAX_FILE_SIZE_MB=80
 MAX_REQUEST_SIZE_MB=100
 ```
 
-### 4. Running the Server
-```bash
-# Production mode
-npm start
+`MAX_FILE_SIZE_MB` is kept between 50 MB and 100 MB by the server. The default
+is 80 MB. Never commit `.env`, OAuth secrets, refresh tokens, or database files.
 
-# Development mode (with file watcher)
-npm run dev
+## Main URLs
+
+| URL | Purpose |
+| --- | --- |
+| `/` | Public landing page |
+| `/owner.html` | Shop owner signup and login |
+| `/login.html` | Shop owner login |
+| `/dashboard.html` | Owner dashboard after login |
+| `/s/<shop-slug>` | Student upload page for one shop |
+| `/api/shops/<shop-slug>/qr.png` | QR code for a shop |
+| `/robots.txt` | Search crawler rules |
+| `/sitemap.xml` | Public sitemap |
+
+The sitemap contains the public landing page only. Login, dashboard, owner
+pages, and shop upload pages are marked `noindex` because they are not useful
+search results and may contain private information.
+
+## Google Drive setup
+
+1. Create or select a project in Google Cloud Console.
+2. Enable the Google Drive API.
+3. Configure the OAuth consent screen.
+4. Add your Google account as a test user while the app is in testing mode.
+5. Create an OAuth web application client.
+6. Add the exact value of `GOOGLE_REDIRECT_URI` as an authorized redirect URI.
+7. Generate a refresh token with Drive access.
+8. Put the client details and refresh token in `.env`.
+9. Optionally create a Drive folder and set `GOOGLE_DRIVE_FOLDER_ID`.
+
+Uploaded files remain private in Drive. The app streams them through
+authenticated dashboard endpoints instead of making them public.
+
+## Deploy to Vercel
+
+1. Push the repository to GitHub.
+2. Import the repository into Vercel.
+3. Add the environment variables from `.env.example` in Vercel project settings.
+4. Set `NODE_ENV=production`.
+5. Set `BASE_URL` to the exact HTTPS URL of the deployed app.
+6. Deploy and test the landing page, owner login, upload page, and dashboard.
+
+The `vercel.json` file tells Vercel to run `server.js` as the serverless
+application entry point.
+
+## Google Search Console
+
+After deployment:
+
+1. Open `/robots.txt` and `/sitemap.xml` on the production domain.
+2. Add the domain to Google Search Console.
+3. Complete Google's DNS or HTML verification.
+4. Submit the following sitemap:
+
+```text
+https://your-domain.com/sitemap.xml
 ```
 
-Visit the application:
-- **Student Upload**: `http://localhost:3000/`
-- **Shop-specific upload**: `http://localhost:3000/s/<shop-id>` (each shop has an isolated queue and QR code)
-- **Shop Dashboard**: `http://localhost:3000/dashboard.html` (create an owner account from `/owner.html`)
-- **Shop login**: use `http://localhost:3000/login.html?shop=<shop-id>` for a specific shop owner.
+The public logo is available at `/brand.svg` and is used for the favicon and
+social preview metadata. Search engines may take some time to index the site.
 
-The first shop is created from `DEFAULT_SHOP_SLUG` and `DEFAULT_SHOP_NAME` (or `default` and
-`PrintDrop`). New shop owners create their isolated shop and account from the Sign up tab on
-`/owner.html`. Each shop uses `/s/<shop-id>` and has its own QR code at
-`/api/shops/<shop-id>/qr.png`.
-After signup, the shop QR code downloads automatically as a PNG file for printing; the success page
-also provides a backup download link.
+## Security notes
 
-### Deploy to Vercel
-1. Create a MongoDB Atlas cluster and allow Vercel's outbound access (or use `0.0.0.0/0` with a strong database user).
-2. Create a Google Cloud OAuth client and obtain a Drive refresh token (steps below).
-3. Import this repository into Vercel. Add every variable from `.env.example` in Project Settings
-   (use a random `SESSION_SECRET` of at least 32 characters), then deploy. `vercel.json` exports
-   `server.js` as the serverless handler.
-4. Set `BASE_URL` to the deployed HTTPS URL so generated QR codes point to the right shop.
+- Use a strong, random `SESSION_SECRET` in production.
+- Keep MongoDB, Google OAuth, and refresh-token values private.
+- Do not make the Google Drive folder public.
+- Use HTTPS in production.
+- Review upload limits before changing them.
+- The `.gitignore` file excludes environment files, local databases, uploads,
+  logs, and generated QR files.
 
-Uploaded files are streamed to Google Drive as private files and deleted there by Drive file ID when printed, deleted, when an account
-is removed, or during opportunistic cleanup on incoming requests. For low-traffic deployments,
-schedule regular traffic (or add a separately protected Vercel Cron endpoint) if strict TTL timing
-is required.
-
-### Google Search Console and SEO
-The public landing page is available to search engines at `/`. The app automatically serves:
-
-- `/sitemap.xml` — sitemap containing the public landing page
-- `/robots.txt` — crawler rules and the sitemap URL
-- `/brand.svg` — shared PrintDrop logo used for the favicon and social preview
-- `/site.webmanifest` — installable web-app metadata
-
-Before submitting the site, set `BASE_URL` to the exact production HTTPS origin, for example
-`https://printdrop.example.com`. Then deploy and verify these URLs in a browser:
-`https://printdrop.example.com/robots.txt` and `https://printdrop.example.com/sitemap.xml`.
-
-In [Google Search Console](https://search.google.com/search-console), add the production domain
-(Domain property is recommended) and complete DNS verification with the TXT record Google provides.
-If a URL-prefix property is used instead, choose HTML tag verification and add the generated
-`google-site-verification` meta tag to `public/landing.html`, then deploy again. Submit
-`https://printdrop.example.com/sitemap.xml` under **Sitemaps** and request indexing for `/`.
-Private pages such as login, owner signup, dashboard, and shop upload pages intentionally include
-`noindex` directives and are excluded from the sitemap.
-
-### Google Drive OAuth setup
-1. In [Google Cloud Console](https://console.cloud.google.com/), create/select a project,
-   enable **Google Drive API**, configure the OAuth consent screen, and add your account as a
-   test user while the app is in Testing.
-2. Create an OAuth **Web application** client and add the exact `GOOGLE_REDIRECT_URI`
-   (for local setup, `http://localhost`) as an authorized redirect URI.
-3. Generate an authorization URL with scope
-   `https://www.googleapis.com/auth/drive`, authorize it as the Drive account that should own
-   uploads, and exchange the returned code for tokens using the same client. Store the returned
-   `refresh_token` as `GOOGLE_REFRESH_TOKEN`; never expose it to the browser. Google's OAuth
-   Playground can perform this exchange when configured with your client credentials.
-4. Optionally create a Drive folder and put its ID in `GOOGLE_DRIVE_FOLDER_ID`. Do not change
-   sharing: files are private by default and the app uses authenticated Drive links.
-
----
-
-## 🛡️ Privacy & Security
-
-- Live databases (`*.db`), environment variables (`.env`), and uploaded files (`uploads/*`) are excluded from version control via `.gitignore`.
-- Always set a custom `SESSION_SECRET` and change default credentials in production.
-
----
-
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
