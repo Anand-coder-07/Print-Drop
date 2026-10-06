@@ -21,6 +21,43 @@
   fill: currentColor;
 }
 
+/* Improve reading size on the public landing page. */
+body {
+  font-size: 17px;
+}
+
+.hero-lede,
+.section-heading > p,
+.benefits-intro > p,
+.step p,
+.benefit-card p,
+.site-footer > p {
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+.step a,
+.text-link,
+.footer-links a,
+.site-footer small {
+  font-size: 1rem;
+}
+
+@media (max-width: 600px) {
+  body {
+    font-size: 16px;
+  }
+
+  .hero-lede,
+  .section-heading > p,
+  .benefits-intro > p,
+  .step p,
+  .benefit-card p,
+  .site-footer > p {
+    font-size: 1rem;
+  }
+}
+
 .site-header.is-scrolled {
   background: rgba(247, 245, 239, .82);
   box-shadow: 0 1px 0 rgba(23, 33, 39, .08), 0 10px 28px rgba(23, 33, 39, .06);
