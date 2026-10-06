@@ -137,6 +137,7 @@ is 80 MB. Never commit `.env`, OAuth secrets, refresh tokens, or database files.
 | `/owner.html` | Shop owner signup and login |
 | `/login.html` | Shop owner login |
 | `/dashboard.html` | Owner dashboard after login |
+| `/delete-account.html` | Password-protected account deletion |
 | `/s/<shop-slug>` | Student upload page for one shop |
 | `/api/shops/<shop-slug>/qr.png` | QR code for a shop |
 | `/robots.txt` | Search crawler rules |

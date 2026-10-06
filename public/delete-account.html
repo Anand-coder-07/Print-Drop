@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Delete your PrintDrop owner account">
+  <title>PrintDrop — Delete Account</title>
+  <link rel="icon" href="/brand.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/dashboard.css?v=20261007-account-page">
+  <link rel="stylesheet" href="/css/owner.css?v=20261007-account-page">
+</head>
+<body>
+  <main class="owner-page delete-page">
+    <section class="owner-card delete-card">
+      <a class="owner-back" href="/dashboard.html">← Back to dashboard</a>
+      <div class="login-header">
+        <div class="login-logo">
+          <div class="login-logo-icon delete-logo" aria-hidden="true">!</div>
+          <span class="login-logo-text">PrintDrop</span>
+        </div>
+        <p class="login-subtitle">Close your shop account</p>
+      </div>
+
+      <div class="delete-warning">
+        <strong>This action cannot be undone</strong>
+        <p>Your shop, QR link, orders, and submitted files will be permanently removed.</p>
+      </div>
+
+      <div class="owner-error" id="deleteError" role="alert"></div>
+      <form id="deleteAccountForm">
+        <label class="owner-field" for="deleteUsername">Username
+          <input id="deleteUsername" type="text" readonly autocomplete="username">
+        </label>
+        <label class="owner-field" for="deletePassword">Password
+          <input id="deletePassword" type="password" required autocomplete="current-password" placeholder="Enter your password">
+        </label>
+        <button class="owner-submit delete-submit" id="deleteSubmit" type="submit">Permanently delete account</button>
+      </form>
+      <p class="delete-note">For your security, we need your password before deleting the account.</p>
+    </section>
+  </main>
+  <script src="/js/delete-account.js?v=20261007-account-page"></script>
+</body>
+</html>

@@ -397,26 +397,6 @@
     window.location.href = '/login.html';
   });
 
-  document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
-    const password = window.prompt('Enter your shop password to permanently delete this account:');
-    if (password === null) return;
-    if (!password) return showToast('Password required', 'Enter your password to delete the account.');
-
-    const button = document.getElementById('deleteAccountBtn');
-    button.disabled = true;
-    button.textContent = 'Removing...';
-    try {
-      const response = await fetch('/api/auth/account', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Account could not be deleted');
-      window.location.href = '/login.html?deleted=1';
-    } catch (error) {
-      button.disabled = false;
-      button.textContent = 'Delete account';
-      showToast('Delete failed', error.message);
-    }
-  });
-
   // --- Init ---
   async function init() {
     // Fetch existing uploads
