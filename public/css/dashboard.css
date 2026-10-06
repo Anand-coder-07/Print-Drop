@@ -425,6 +425,16 @@ body {
   border: 1px solid var(--border-light);
 }
 
+.file-action-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .file-action-btn:hover {
   background: var(--bg-hover);
   border-color: var(--border);
@@ -452,6 +462,8 @@ body {
 .file-action-btn.print-btn:hover {
   background: var(--accent);
   color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(79, 70, 229, 0.22);
 }
 
 .file-action-btn.download-btn:hover {

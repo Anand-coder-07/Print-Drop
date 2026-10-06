@@ -71,6 +71,16 @@
     return 'File';
   }
 
+  function actionIcon(name) {
+    const icons = {
+      print: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg>',
+      open: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M19 5l-9 9M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>',
+      view: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg>',
+      download: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg>'
+    };
+    return icons[name];
+  }
+
   // --- Notification Sound ---
   let audioCtx = null;
   function playNotificationSound() {
@@ -173,10 +183,10 @@
               <div class="card-file-meta">${getFileTypeLabel(f.fileType)} • ${formatSize(f.fileSize)}</div>
             </div>
             <div class="card-file-actions">
-              <button class="file-action-btn print-btn" data-action="print" data-file-id="${f.id}" data-file-name="${f.originalName}" data-file-type="${f.fileType}" title="Send to printer">P</button>
-              <button class="file-action-btn direct-view-btn" data-action="direct-view" data-file-id="${f.id}" title="Open separately">↗</button>
-              <button class="file-action-btn preview-btn" data-action="preview" data-file-id="${f.id}" data-file-name="${f.originalName}" data-file-type="${f.fileType}" title="Quick preview">View</button>
-              <button class="file-action-btn download-btn" data-action="download" data-file-id="${f.id}" title="Download">↓</button>
+              <button class="file-action-btn print-btn" data-action="print" data-file-id="${f.id}" data-file-name="${f.originalName}" data-file-type="${f.fileType}" title="Send to printer" aria-label="Send to printer">${actionIcon('print')}</button>
+              <button class="file-action-btn direct-view-btn" data-action="direct-view" data-file-id="${f.id}" title="Open separately" aria-label="Open separately">${actionIcon('open')}</button>
+              <button class="file-action-btn preview-btn" data-action="preview" data-file-id="${f.id}" data-file-name="${f.originalName}" data-file-type="${f.fileType}" title="Quick preview" aria-label="Quick preview">${actionIcon('view')}</button>
+              <button class="file-action-btn download-btn" data-action="download" data-file-id="${f.id}" title="Download" aria-label="Download">${actionIcon('download')}</button>
             </div>
           </div>
         `).join('')}
