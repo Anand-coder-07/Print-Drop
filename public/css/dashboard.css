@@ -790,7 +790,7 @@ body {
 .qr-feature.qr-floating .qr-image {
   position: fixed;
   top: 50%;
-  right: max(22px, calc((100vw - 1240px) / 2));
+  right: 24px;
   width: 164px;
   height: 164px;
   transform: translateY(-50%);
@@ -881,6 +881,18 @@ body {
   .qr-feature {
     position: relative;
     top: 0;
+  }
+
+  @media (max-width: 999px) {
+    .qr-feature.qr-floating .qr-image {
+      position: relative;
+      top: auto;
+      right: auto;
+      width: 94px;
+      height: 94px;
+      transform: none;
+      animation: none;
+    }
   }
 
   .qr-feature.qr-floating .qr-image {

@@ -43,7 +43,7 @@
 
   if (qrFeature) {
     const updateQrPosition = () => {
-      const canFloat = window.matchMedia('(min-width: 601px)').matches;
+      const canFloat = window.matchMedia('(min-width: 1000px)').matches;
       qrFeature.classList.toggle('qr-floating', canFloat && window.scrollY > 24);
     };
 
