@@ -844,6 +844,10 @@ body {
 }
 
 .account-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
   margin-top: 24px;
   padding: 20px;
   border: 1px solid rgba(187, 63, 69, .25);
@@ -852,17 +856,46 @@ body {
 }
 
 .account-section h3 { color: var(--error); font-size: 16px; }
-.account-section p { margin-top: 6px; color: var(--text-secondary); font-size: 13px; }
+.account-section p { margin-top: 6px; color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
 
 .delete-account-btn {
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  font-size: 18px;
-  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(187, 63, 69, .4);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .55);
+  color: var(--error);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.delete-account-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.delete-account-btn:hover {
+  background: var(--error);
+  color: #fff;
+  border-color: var(--error);
+  transform: translateY(-1px);
+}
+
+.delete-account-btn:focus-visible {
+  outline: 3px solid rgba(187, 63, 69, .2);
+  outline-offset: 2px;
 }
 
 @media (max-width: 600px) {
@@ -870,21 +903,16 @@ body {
     position: relative;
     top: 0;
   }
-}
-  margin-top: 14px;
-  border: 1px solid var(--error);
-  border-radius: var(--radius-xs);
-  padding: 10px 14px;
-  background: transparent;
-  color: var(--error);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
 
-.delete-account-btn:hover { background: var(--error); color: #fff; }
-.delete-account-btn:disabled { opacity: .65; cursor: wait; }
+  .account-section {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .delete-account-btn {
+    width: 100%;
+  }
+}
 
 .qr-title {
   font-size: 14px;
