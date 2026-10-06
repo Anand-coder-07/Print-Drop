@@ -785,6 +785,32 @@ body {
   height: 94px;
   padding: 7px;
   flex-shrink: 0;
+  transition: width .3s ease, height .3s ease, transform .3s ease, box-shadow .3s ease;
+}
+
+.qr-feature.qr-floating .qr-image {
+  position: fixed;
+  top: 50%;
+  right: max(22px, calc((100vw - 1240px) / 2));
+  width: 164px;
+  height: 164px;
+  transform: translateY(-50%);
+  z-index: 20;
+  background: var(--bg-white);
+  border: 1px solid rgba(217, 242, 108, .9);
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(23, 33, 39, .2), 0 0 0 8px rgba(217, 242, 108, .14);
+  animation: qrFloatIn .3s ease both, qrHoverFloat 3s ease-in-out .3s infinite;
+}
+
+@keyframes qrFloatIn {
+  from { opacity: 0; transform: translate(24px, -50%) scale(.86); }
+  to { opacity: 1; transform: translate(0, -50%) scale(1); }
+}
+
+@keyframes qrHoverFloat {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -8px; }
 }
 
 .qr-kicker {
@@ -856,6 +882,16 @@ body {
   .qr-feature {
     position: relative;
     top: 0;
+  }
+
+  .qr-feature.qr-floating .qr-image {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 94px;
+    height: 94px;
+    transform: none;
+    animation: none;
   }
 }
   margin-top: 14px;

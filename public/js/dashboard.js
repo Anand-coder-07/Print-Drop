@@ -29,6 +29,8 @@
   const statPending = document.getElementById('statPending');
   const statFiles = document.getElementById('statFiles');
   const statStorage = document.getElementById('statStorage');
+  const qrFeature = document.querySelector('.qr-feature');
+  const qrImage = qrFeature?.querySelector('.qr-image');
   const modalOverlay = document.getElementById('modalOverlay');
   const modalTitle = document.getElementById('modalTitle');
   const modalBody = document.getElementById('modalBody');
@@ -39,6 +41,13 @@
   const toast = document.getElementById('toast');
   const toastTitle = document.getElementById('toastTitle');
   const toastMessage = document.getElementById('toastMessage');
+
+  if (qrFeature && qrImage) {
+    qrImage.addEventListener('mouseenter', () => {
+      if (window.scrollY > 24) qrFeature.classList.add('qr-floating');
+    });
+    qrImage.addEventListener('mouseleave', () => qrFeature.classList.remove('qr-floating'));
+  }
 
   // --- Helpers ---
   function formatSize(bytes) {
