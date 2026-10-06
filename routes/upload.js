@@ -8,7 +8,7 @@ const { generateUniqueCode } = require('../utils/codeGenerator');
 const router = express.Router();
 const allowed = { 'application/pdf': '.pdf', 'image/jpeg': '.jpg', 'image/png': '.png' };
 const maxFiles = () => +(process.env.MAX_UPLOAD_FILES || 10);
-const maxFileSizeMb = () => +(process.env.MAX_FILE_SIZE_MB || 50);
+const maxFileSizeMb = () => Math.min(100, Math.max(50, Number(process.env.MAX_FILE_SIZE_MB) || 80));
 const maxBytes = () => maxFileSizeMb() * 1024 * 1024;
 const tokenSecret = () => process.env.SESSION_SECRET || process.env.CLOUDINARY_API_SECRET;
 const shopFor = req => req.body?.shop || req.query.shop || process.env.DEFAULT_SHOP_SLUG || 'default';

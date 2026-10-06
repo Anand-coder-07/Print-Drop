@@ -54,8 +54,9 @@ CLOUDINARY_API_SECRET=your-api-secret
 UPLOAD_TTL_MINUTES=30
 BASE_URL=http://localhost:3000
 MAX_UPLOAD_FILES=10
-MAX_FILE_SIZE_MB=50
-MAX_REQUEST_SIZE_MB=50
+# MAX_FILE_SIZE_MB accepts 50-100; defaults to 80 when omitted
+MAX_FILE_SIZE_MB=80
+MAX_REQUEST_SIZE_MB=100
 ```
 
 ### 4. Running the Server

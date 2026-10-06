@@ -20,7 +20,9 @@
   const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
   const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
   const MAX_FILES = 10;
-  const DEFAULT_MAX_FILE_SIZE_MB = 50;
+  const DEFAULT_MAX_FILE_SIZE_MB = 80;
+  const MIN_MAX_FILE_SIZE_MB = 50;
+  const MAX_MAX_FILE_SIZE_MB = 100;
   let maxFiles = MAX_FILES;
   let maxFileSizeMb = DEFAULT_MAX_FILE_SIZE_MB;
   let maxFileSize = maxFileSizeMb * 1024 * 1024;
@@ -35,8 +37,8 @@
       if (!response.ok) return;
       const config = await response.json();
       if (Number.isInteger(config.maxFiles) && config.maxFiles > 0) maxFiles = config.maxFiles;
-      if (Number.isFinite(config.maxFileSizeMb) && config.maxFileSizeMb > 0) {
-        maxFileSizeMb = config.maxFileSizeMb;
+      if (Number.isFinite(config.maxFileSizeMb)) {
+        maxFileSizeMb = Math.min(MAX_MAX_FILE_SIZE_MB, Math.max(MIN_MAX_FILE_SIZE_MB, config.maxFileSizeMb));
         maxFileSize = maxFileSizeMb * 1024 * 1024;
       }
     } catch (error) {
