@@ -32,7 +32,7 @@ router.post('/signature', async (req, res) => {
     const groupId = uuidv4();
     const entries = files.map(file => {
       const resourceType = file.type === 'application/pdf' ? 'raw' : 'image';
-      const publicId = `printdrop/${groupId}/${uuidv4()}`;
+      const publicId = `${groupId}/${uuidv4()}`;
       const timestamp = Math.floor(Date.now() / 1000);
       const params = { folder: 'printdrop', public_id: publicId, timestamp, resource_type: resourceType };
       // resource_type is used to choose the Cloudinary endpoint, not signed.
