@@ -88,9 +88,13 @@ router.post('/chunk', async (req, res) => {
     const sessionUrl = req.body?.sessionUrl;
     const start = Number(req.body?.start);
     const end = Number(req.body?.end);
-    if (!expected || !/^https:\/\/www\.googleapis\.com\/upload\/drive\/v3\/files\?uploadType=resumable&upload_id=/.test(sessionUrl) ||
+    let parsedSessionUrl;
+    try { parsedSessionUrl = new URL(sessionUrl); } catch {}
+    if (!expected || !parsedSessionUrl || parsedSessionUrl.protocol !== 'https:' ||
+      parsedSessionUrl.hostname !== 'www.googleapis.com' || parsedSessionUrl.pathname !== '/upload/drive/v3/files' ||
+      parsedSessionUrl.searchParams.get('uploadType') !== 'resumable' || !parsedSessionUrl.searchParams.get('upload_id') ||
       !Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end >= expected.fileSize) {
-      return res.status(400).json({ error: 'Upload details did not match the signed request.' });
+      return res.status(400).json({ error: 'Upload chunk details did not match the signed request.' });
     }
     const chunk = Buffer.from(req.body?.chunk || '', 'base64');
     if (chunk.length !== end - start + 1) return res.status(400).json({ error: 'Upload chunk size did not match.' });
