@@ -20,11 +20,29 @@
   const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
   const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
   const MAX_FILES = 10;
-  const MAX_FILE_SIZE = 25 * 1024 * 1024;
+  const DEFAULT_MAX_FILE_SIZE_MB = 50;
+  let maxFiles = MAX_FILES;
+  let maxFileSizeMb = DEFAULT_MAX_FILE_SIZE_MB;
+  let maxFileSize = maxFileSizeMb * 1024 * 1024;
 
   // --- State ---
   let selectedFiles = [];
   const shopSlug = window.location.pathname.match(/^\/s\/([^/]+)/)?.[1];
+
+  async function loadUploadConfig() {
+    try {
+      const response = await fetch('/api/upload/config');
+      if (!response.ok) return;
+      const config = await response.json();
+      if (Number.isInteger(config.maxFiles) && config.maxFiles > 0) maxFiles = config.maxFiles;
+      if (Number.isFinite(config.maxFileSizeMb) && config.maxFileSizeMb > 0) {
+        maxFileSizeMb = config.maxFileSizeMb;
+        maxFileSize = maxFileSizeMb * 1024 * 1024;
+      }
+    } catch (error) {
+      console.error('Failed to load upload configuration:', error);
+    }
+  }
 
   async function loadShopName() {
     const shopName = document.getElementById('shopName');
@@ -45,6 +63,7 @@
     }
   }
 
+  loadUploadConfig();
   loadShopName();
 
   // --- Helpers ---
@@ -80,7 +99,7 @@
     if (!ALLOWED_TYPES.includes(file.type) && !ALLOWED_EXTENSIONS.includes(ext)) {
       return `"${file.name}" is not allowed. Only PDF, JPG, and PNG files are accepted.`;
     }
-    if (file.size > MAX_FILE_SIZE) return `"${file.name}" is too large. Files must be no larger than 25 MB.`;
+    if (file.size > maxFileSize) return `"${file.name}" is too large. Files must be no larger than ${maxFileSizeMb} MB.`;
     return null;
   }
 
@@ -129,8 +148,8 @@
       );
       if (alreadyAdded) continue;
 
-      if (selectedFiles.length >= MAX_FILES) {
-        showError(`You can submit up to ${MAX_FILES} files at a time.`);
+      if (selectedFiles.length >= maxFiles) {
+        showError(`You can submit up to ${maxFiles} files at a time.`);
         break;
       }
       selectedFiles.push(file);

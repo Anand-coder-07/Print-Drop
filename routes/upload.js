@@ -8,15 +8,20 @@ const { generateUniqueCode } = require('../utils/codeGenerator');
 const router = express.Router();
 const allowed = { 'application/pdf': '.pdf', 'image/jpeg': '.jpg', 'image/png': '.png' };
 const maxFiles = () => +(process.env.MAX_UPLOAD_FILES || 10);
-const maxBytes = () => +(process.env.MAX_FILE_SIZE_MB || 25) * 1024 * 1024;
+const maxFileSizeMb = () => +(process.env.MAX_FILE_SIZE_MB || 50);
+const maxBytes = () => maxFileSizeMb() * 1024 * 1024;
 const tokenSecret = () => process.env.SESSION_SECRET || process.env.CLOUDINARY_API_SECRET;
 const shopFor = req => req.body?.shop || req.query.shop || process.env.DEFAULT_SHOP_SLUG || 'default';
 const signToken = payload => jwt.sign(payload, tokenSecret(), { expiresIn: '30m' });
 const verifyToken = token => jwt.verify(token, tokenSecret());
-const upload = multer({ storage: multer.memoryStorage(), fileFilter: (req, f, cb) => allowed[f.mimetype] ? cb(null, true) : cb(new Error('Only PDF, JPG, and PNG are accepted')), limits: { files: +(process.env.MAX_UPLOAD_FILES || 10), fileSize: +(process.env.MAX_FILE_SIZE_MB || 25) * 1024 * 1024 } });
+const upload = multer({ storage: multer.memoryStorage(), fileFilter: (req, f, cb) => allowed[f.mimetype] ? cb(null, true) : cb(new Error('Only PDF, JPG, and PNG are accepted')), limits: { files: maxFiles(), fileSize: maxBytes() } });
 
 // The browser uses these signed parameters to upload directly to Cloudinary.
 // The API secret never leaves this server.
+router.get('/config', (req, res) => {
+  res.json({ maxFiles: maxFiles(), maxFileSizeMb: maxFileSizeMb() });
+});
+
 router.post('/signature', async (req, res) => {
   try {
     const files = Array.isArray(req.body?.files) ? req.body.files : [];
@@ -24,7 +29,7 @@ router.post('/signature', async (req, res) => {
     if (!tokenSecret() || !process.env.CLOUDINARY_API_SECRET || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_CLOUD_NAME) return res.status(500).json({ error: 'Upload signing is not configured.' });
     for (const file of files) {
       if (!file || !allowed[file.type] || !Number.isFinite(file.size) || file.size < 1 || file.size > maxBytes()) {
-        return res.status(400).json({ error: `Each file must be a PDF, JPG, or PNG no larger than ${process.env.MAX_FILE_SIZE_MB || 25} MB.` });
+        return res.status(400).json({ error: `Each file must be a PDF, JPG, or PNG no larger than ${maxFileSizeMb()} MB.` });
       }
     }
     const shop = await Shop.findOne({ slug: shopFor(req) });
