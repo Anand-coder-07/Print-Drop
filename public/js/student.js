@@ -241,7 +241,7 @@
         });
         uploaded.push({ upload_id: result.upload_id, public_id: result.public_id, secure_url: result.secure_url, originalName: params.originalName, fileType: params.fileType, fileSize: params.fileSize });
       }
-      progressText.textContent = 'Saving submission...';
+      progressText.textContent = 'Finishing your order...';
       const complete = await fetch('/api/upload/complete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: session.token, files: uploaded }) });
       const data = await complete.json();
       if (!complete.ok) throw new Error(data.error || 'Upload metadata could not be saved.');
@@ -264,7 +264,7 @@
     uploadBtn.style.display = '';
     progressSection.classList.remove('active');
     progressBar.style.width = '0%';
-    progressText.textContent = 'Uploading... 0%';
+    progressText.textContent = 'Sending... 0%';
   }
 
   function resetAll() {

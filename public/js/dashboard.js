@@ -204,7 +204,7 @@
 
   function directPrintFile(fileId, fileType, fileName) {
     const url = `/api/uploads/${fileId}/preview`;
-    showToast('Print request', `Opening print for ${fileName || 'file'}...`);
+    showToast('Opening print preview', `Opening ${fileName || 'document'}...`);
 
     if (fileType && fileType.startsWith('image/')) {
       let printFrame = document.getElementById('printFrame');
@@ -264,7 +264,7 @@
     const group = uploads.find(u => u.groupId === groupId);
     if (!group || !group.files || group.files.length === 0) return;
 
-    showToast('Print request', `Sending ${group.files.length} file(s) to printer for code ${group.code}...`);
+    showToast('Printing started', `Sending ${group.files.length} document(s) to the printer for pickup code ${group.code}...`);
 
     group.files.forEach((f, idx) => {
       setTimeout(() => {
@@ -286,7 +286,7 @@
   }
 
   async function deleteUpload(groupId) {
-    if (!confirm('Delete this upload? The files will be permanently removed.')) return;
+    if (!confirm('Delete this print order? The files will be permanently removed.')) return;
     try {
       const res = await fetch(`/api/uploads/group/${groupId}`, { method: 'DELETE' });
       if (res.ok) {
@@ -406,7 +406,7 @@
 
     const button = document.getElementById('deleteAccountBtn');
     button.disabled = true;
-    button.textContent = 'Deleting...';
+    button.textContent = 'Removing...';
     try {
       const response = await fetch('/api/auth/account', { method: 'DELETE' });
       const data = await response.json();
@@ -431,7 +431,7 @@
       console.error('Failed to fetch uploads:', err);
     }
 
-    // Vercel does not support durable WebSocket connections; poll instead.
+    // Refresh the orders regularly so the owner sees new print requests.
     setInterval(async () => {
       try {
         const response = await fetch('/api/uploads');
@@ -442,7 +442,7 @@
           uploads = next;
           renderQueue();
         }
-      } catch (err) { console.debug('Queue polling failed', err); }
+      } catch (err) { console.debug('Order refresh failed', err); }
     }, 5000);
 
     // Update time-ago every 30 seconds

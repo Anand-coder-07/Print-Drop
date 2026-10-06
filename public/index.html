@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Upload your print files quickly — no login required. Just scan, upload, and get your code.">
-  <title>PrintDrop — Secure File Submission</title>
+  <meta name="description" content="Send your print files quickly — no login required. Just scan, choose your files, and get your pickup code.">
+  <title>PrintDrop — Send files to print</title>
   <link rel="stylesheet" href="/css/student.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%2318232b'/%3E%3Cpath d='M28 42h44v30H28zM35 28h30v14H35zM35 58h30v18H35z' fill='none' stroke='%23fffdf9' stroke-width='6'/%3E%3C/svg%3E">
 </head>
@@ -44,7 +44,7 @@
 
       <!-- Upload Button -->
       <button class="upload-btn" id="uploadBtn" disabled>
-        Submit files
+        Send files
       </button>
 
       <!-- Progress -->
@@ -52,24 +52,24 @@
         <div class="progress-bar-container">
           <div class="progress-bar" id="progressBar"></div>
         </div>
-        <p class="progress-text" id="progressText">Uploading... 0%</p>
+        <p class="progress-text" id="progressText">Sending... 0%</p>
       </div>
     </section>
 
     <!-- Success Section -->
     <section class="success-section" id="successSection">
       <div class="success-icon">✓</div>
-      <h2 class="success-title">Submission received</h2>
+      <h2 class="success-title">Files sent successfully</h2>
       <div class="code-display">
         <p class="code-label">Your collection code</p>
         <p class="code-value" id="codeValue">—</p>
       </div>
       <p class="code-hint">
-        Share this code with the print counter.<br>
-        Your documents are ready to be processed.
+        Share this pickup code at the print counter.<br>
+        Your documents are ready to print.
       </p>
       <button class="new-upload-btn" id="newUploadBtn">
-        Submit more files
+        Send more files
       </button>
     </section>
 
@@ -79,6 +79,6 @@
     </footer>
   </div>
 
-  <script src="/js/student.js?v=20261007-chunked"></script>
+  <script src="/js/student.js?v=20261007-plain-language"></script>
 </body>
 </html>

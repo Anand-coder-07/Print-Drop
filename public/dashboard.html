@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="PrintDrop owner dashboard — view and manage student print uploads in real time">
+  <meta name="description" content="PrintDrop owner page — view and manage student print orders">
   <title>PrintDrop — Print Operations</title>
   <link rel="stylesheet" href="/css/dashboard.css?v=20261007-icons">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%2318232b'/%3E%3Cpath d='M28 42h44v30H28zM35 28h30v14H35zM35 58h30v18H35z' fill='none' stroke='%23fffdf9' stroke-width='6'/%3E%3C/svg%3E">
@@ -31,7 +31,7 @@
     <div class="stats-bar">
       <div class="stat-card">
         <div class="stat-value pending" id="statPending">0</div>
-        <div class="stat-label">In queue</div>
+        <div class="stat-label">Waiting to print</div>
       </div>
       <div class="stat-card">
         <div class="stat-value total-files" id="statFiles">0</div>
@@ -39,7 +39,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-value storage" id="statStorage">0 B</div>
-        <div class="stat-label">Total size</div>
+        <div class="stat-label">Total file size</div>
       </div>
     </div>
 
@@ -47,31 +47,31 @@
     <div class="queue-header">
       <h1 class="queue-title">
         <span class="live-dot"></span>
-        Print queue
+        Print orders
       </h1>
-      <span class="queue-subtitle">Live updates enabled</span>
+      <span class="queue-subtitle">Updates automatically</span>
     </div>
 
     <div class="queue-list" id="queueList">
       <div class="empty-state" id="emptyState">
         <span class="empty-icon">—</span>
-        <h2 class="empty-title">Queue is clear</h2>
-        <p class="empty-subtitle">New document submissions will appear here automatically</p>
+        <h2 class="empty-title">No orders waiting</h2>
+        <p class="empty-subtitle">New print orders will appear here automatically</p>
       </div>
     </div>
 
     <!-- QR Code Section -->
     <div class="qr-section">
-      <h3 class="qr-title">Customer submission link</h3>
+      <h3 class="qr-title">Customer upload link</h3>
       <div class="qr-image">
         <img src="/qr.png" alt="Scan to upload files" id="qrImg">
       </div>
-      <p class="qr-hint">Display this QR code at your counter so customers can submit documents</p>
+      <p class="qr-hint">Display this QR code at your counter so customers can send documents</p>
     </div>
 
     <section class="account-section">
       <h3>Account settings</h3>
-      <p>Permanently delete this shop, uploads, login account, and QR access.</p>
+      <p>Permanently delete this shop, all submitted files, login account, and QR link.</p>
       <button class="delete-account-btn" id="deleteAccountBtn" type="button">Delete account</button>
     </section>
   </div>
@@ -83,7 +83,7 @@
         <span class="modal-title" id="modalTitle">File Preview</span>
         <div class="modal-actions">
           <button class="modal-action-btn print-btn" id="modalPrintBtn" title="Send to printer">Print document</button>
-          <button class="modal-action-btn" id="modalDirectViewBtn" title="Open directly in new tab">Open separately</button>
+          <button class="modal-action-btn" id="modalDirectViewBtn" title="Open in a new tab">Open in new tab</button>
           <button class="modal-close" id="modalClose" title="Close">×</button>
         </div>
       </div>
@@ -95,11 +95,11 @@
   <div class="toast" id="toast">
     <span class="toast-icon" aria-hidden="true">●</span>
     <div class="toast-content">
-      <div class="toast-title" id="toastTitle">New Upload</div>
+      <div class="toast-title" id="toastTitle">New print order</div>
       <div class="toast-message" id="toastMessage"></div>
     </div>
   </div>
 
-  <script src="/js/dashboard.js?v=20261007-icons"></script>
+  <script src="/js/dashboard.js?v=20261007-plain-language"></script>
 </body>
 </html>
