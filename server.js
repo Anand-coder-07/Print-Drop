@@ -10,6 +10,33 @@ app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false 
 const limit = `${Math.min(100, Math.max(50, parseInt(process.env.MAX_REQUEST_SIZE_MB, 10) || 100))}mb`;
 app.use(express.json({ limit }), express.urlencoded({ extended: true, limit }));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
+app.get('/robots.txt', (req, res) => {
+  const base = (process.env.BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+  res.type('text/plain').send(`User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard.html
+Disallow: /login.html
+Disallow: /owner.html
+Disallow: /index.html
+Disallow: /s/
+
+Sitemap: ${base}/sitemap.xml
+`);
+});
+app.get('/sitemap.xml', (req, res) => {
+  const base = (process.env.BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+  const lastmod = new Date().toISOString().slice(0, 10);
+  res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${base}/</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`);
+});
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(async (req, res, next) => {
   try {

@@ -1,0 +1,17 @@
+{
+  "name": "PrintDrop",
+  "short_name": "PrintDrop",
+  "description": "Send documents to your local print shop in seconds.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f5ef",
+  "theme_color": "#18262a",
+  "icons": [
+    {
+      "src": "/brand.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

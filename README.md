@@ -96,6 +96,26 @@ is removed, or during opportunistic cleanup on incoming requests. For low-traffi
 schedule regular traffic (or add a separately protected Vercel Cron endpoint) if strict TTL timing
 is required.
 
+### Google Search Console and SEO
+The public landing page is available to search engines at `/`. The app automatically serves:
+
+- `/sitemap.xml` — sitemap containing the public landing page
+- `/robots.txt` — crawler rules and the sitemap URL
+- `/brand.svg` — shared PrintDrop logo used for the favicon and social preview
+- `/site.webmanifest` — installable web-app metadata
+
+Before submitting the site, set `BASE_URL` to the exact production HTTPS origin, for example
+`https://printdrop.example.com`. Then deploy and verify these URLs in a browser:
+`https://printdrop.example.com/robots.txt` and `https://printdrop.example.com/sitemap.xml`.
+
+In [Google Search Console](https://search.google.com/search-console), add the production domain
+(Domain property is recommended) and complete DNS verification with the TXT record Google provides.
+If a URL-prefix property is used instead, choose HTML tag verification and add the generated
+`google-site-verification` meta tag to `public/landing.html`, then deploy again. Submit
+`https://printdrop.example.com/sitemap.xml` under **Sitemaps** and request indexing for `/`.
+Private pages such as login, owner signup, dashboard, and shop upload pages intentionally include
+`noindex` directives and are excluded from the sitemap.
+
 ### Google Drive OAuth setup
 1. In [Google Cloud Console](https://console.cloud.google.com/), create/select a project,
    enable **Google Drive API**, configure the OAuth consent screen, and add your account as a

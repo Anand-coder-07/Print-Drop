@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title">
+  <title>PrintDrop logo</title>
+  <rect width="48" height="48" rx="12" fill="#18262a"/>
+  <path d="M14 20h20v-8H14v8Zm-4 4h28a4 4 0 0 1 4 4v8H6v-8a4 4 0 0 1 4-4Zm4 12h20v8H14v-8Z" fill="none" stroke="#fffdf9" stroke-width="3"/>
+  <path d="M31 28h5" stroke="#d9f26c" stroke-width="2" stroke-linecap="round"/>
+</svg>
