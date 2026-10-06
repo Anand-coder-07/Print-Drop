@@ -28,7 +28,6 @@
   const statPending = document.getElementById('statPending');
   const statFiles = document.getElementById('statFiles');
   const statStorage = document.getElementById('statStorage');
-  const qrFeature = document.querySelector('.qr-feature');
   const modalOverlay = document.getElementById('modalOverlay');
   const modalTitle = document.getElementById('modalTitle');
   const modalBody = document.getElementById('modalBody');
@@ -39,16 +38,6 @@
   const toast = document.getElementById('toast');
   const toastTitle = document.getElementById('toastTitle');
   const toastMessage = document.getElementById('toastMessage');
-
-  if (qrFeature) {
-    const updateQrPosition = () => {
-      const canFloat = window.matchMedia('(min-width: 1000px)').matches;
-      qrFeature.classList.toggle('qr-floating', canFloat && window.scrollY > 24);
-    };
-
-    window.addEventListener('scroll', updateQrPosition, { passive: true });
-    updateQrPosition();
-  }
 
   // --- Helpers ---
   function formatSize(bytes) {

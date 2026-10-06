@@ -800,31 +800,6 @@ body {
   object-fit: contain;
 }
 
-.qr-feature.qr-floating .qr-image {
-  position: fixed;
-  top: 50%;
-  right: 24px;
-  width: 190px;
-  height: 190px;
-  transform: translateY(-50%);
-  z-index: 20;
-  background: var(--bg-white);
-  border: 1px solid rgba(217, 242, 108, .9);
-  border-radius: 18px;
-  box-shadow: 0 18px 45px rgba(23, 33, 39, .2), 0 0 0 8px rgba(217, 242, 108, .14);
-  animation: qrFloatIn .3s ease both, qrHoverFloat 3s ease-in-out .3s infinite;
-}
-
-@keyframes qrFloatIn {
-  from { opacity: 0; transform: translate(24px, -50%) scale(.86); }
-  to { opacity: 1; transform: translate(0, -50%) scale(1); }
-}
-
-@keyframes qrHoverFloat {
-  0%, 100% { margin-top: 0; }
-  50% { margin-top: -8px; }
-}
-
 .qr-kicker {
   margin: 0 0 5px;
   color: var(--accent);
@@ -894,28 +869,6 @@ body {
   .qr-feature {
     position: relative;
     top: 0;
-  }
-
-  @media (max-width: 999px) {
-    .qr-feature.qr-floating .qr-image {
-      position: relative;
-      top: auto;
-      right: auto;
-      width: 124px;
-      height: 124px;
-      transform: none;
-      animation: none;
-    }
-  }
-
-  .qr-feature.qr-floating .qr-image {
-    position: relative;
-    top: auto;
-    right: auto;
-    width: 124px;
-    height: 124px;
-    transform: none;
-    animation: none;
   }
 }
   margin-top: 14px;
