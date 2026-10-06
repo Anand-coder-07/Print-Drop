@@ -169,22 +169,20 @@
   }
 
   // --- Upload ---
-  function cloudinaryUpload(file, params, onProgress) {
+  function driveUpload(file, params, token, onProgress) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(params.cloudName)}/${params.resource_type}/upload`;
+      const endpoint = '/api/upload/file';
       const body = new FormData();
       body.append('file', file);
-      body.append('api_key', params.api_key);
-      body.append('timestamp', params.timestamp);
-      body.append('public_id', params.public_id);
-      body.append('signature', params.signature);
+      body.append('token', token);
+      body.append('upload_id', params.upload_id);
       xhr.upload.onprogress = e => e.lengthComputable && onProgress(e.loaded);
       xhr.onload = () => {
         let data;
-        try { data = JSON.parse(xhr.responseText); } catch { return reject(new Error('Cloudinary returned an invalid response.')); }
+        try { data = JSON.parse(xhr.responseText); } catch { return reject(new Error('Upload returned an invalid response.')); }
         if (xhr.status >= 200 && xhr.status < 300) resolve(data);
-        else reject(new Error(data.error?.message || 'Cloudinary upload failed.'));
+        else reject(new Error(data.error || 'Upload failed.'));
       };
       xhr.onerror = () => reject(new Error('Network error while uploading a file.'));
       xhr.open('POST', endpoint);
@@ -207,14 +205,14 @@
       if (!response.ok) throw new Error(session.error || 'Unable to prepare upload.');
       const loaded = new Array(files.length).fill(0);
       for (let i = 0; i < files.length; i++) {
-        const file = files[i], params = { ...session.files[i], cloudName: session.cloudName };
-        const result = await cloudinaryUpload(file, params, bytes => {
+        const file = files[i], params = session.files[i];
+        const result = await driveUpload(file, params, session.token, bytes => {
           loaded[i] = bytes;
           const pct = Math.round(loaded.reduce((sum, value) => sum + value, 0) / files.reduce((sum, item) => sum + item.size, 0) * 100);
           progressBar.style.width = pct + '%';
           progressText.textContent = `Uploading... ${pct}%`;
         });
-        uploaded.push({ public_id: result.public_id, secure_url: result.secure_url, resourceType: params.resource_type, originalName: params.originalName, fileType: params.fileType, fileSize: params.fileSize });
+        uploaded.push({ upload_id: result.upload_id, public_id: result.public_id, secure_url: result.secure_url, originalName: params.originalName, fileType: params.fileType, fileSize: params.fileSize });
       }
       progressText.textContent = 'Saving submission...';
       const complete = await fetch('/api/upload/complete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: session.token, files: uploaded }) });

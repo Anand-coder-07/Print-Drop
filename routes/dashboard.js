@@ -1,6 +1,6 @@
 const express = require('express');
 const { Upload } = require('../db');
-const { deleteFile } = require('../utils/cloudinary');
+const { deleteFile, downloadFile } = require('../utils/googleDrive');
 const { requireAuth } = require('../middleware/auth');
 const router = express.Router(); router.use(requireAuth);
 router.get('/', async (req, res) => {
@@ -10,7 +10,22 @@ router.get('/', async (req, res) => {
 });
 router.get('/:id/:action(preview|download)', async (req, res) => {
   const u = await Upload.findOne({ id: req.params.id, shop_id: req.shopId }); if (!u) return res.status(404).json({ error: 'File not found' });
-  res.redirect(u.secure_url);
+  try {
+    const file = await downloadFile(u.public_id);
+    res.type(u.file_type || 'application/octet-stream');
+    if (req.params.action === 'download') {
+      const name = u.original_name.replace(/[\r\n"]/g, '_');
+      res.setHeader('Content-Disposition', `attachment; filename="${name}"`);
+    }
+    file.data.on('error', error => {
+      if (!res.headersSent) res.status(502).json({ error: 'Unable to read file from Google Drive.' });
+      else res.destroy(error);
+    });
+    file.data.pipe(res);
+  } catch (error) {
+    console.error('Google Drive download failed:', error.message);
+    res.status(502).json({ error: 'Unable to download file.' });
+  }
 });
 router.patch('/group/:groupId/status', async (req, res) => {
   const files = await Upload.find({ group_id: req.params.groupId, shop_id: req.shopId }); if (!files.length) return res.status(404).json({ error: 'Upload group not found' });

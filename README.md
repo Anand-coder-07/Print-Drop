@@ -10,7 +10,7 @@ A local Wi-Fi file relay and printing management system designed for campus prin
 - **⚡ Dashboard polling**: The queue refreshes every five seconds (compatible with serverless hosting).
 - **🔢 Pickup Codes**: Unique short pickup codes generated for each upload so students can easily identify their prints.
 - **🧹 Automatic Cleanup**: Scheduled background cleanup of uploaded files after a configurable TTL to save disk space and protect student privacy.
-- **🔒 Secure cloud deployment**: MongoDB Atlas stores metadata and Cloudinary stores encrypted file assets.
+- **🔒 Secure cloud deployment**: MongoDB Atlas stores metadata and private Google Drive stores file assets.
 - **📊 Print Status Tracking**: Manage print jobs (`Pending`, `Printing`, `Completed`) with real-time status feedback.
 
 ---
@@ -19,7 +19,7 @@ A local Wi-Fi file relay and printing management system designed for campus prin
 
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB Atlas via Mongoose
-- **File Handling**: Multer memory uploads and Cloudinary
+- **File Handling**: Multer memory uploads and Google Drive OAuth2
 - **Security**: Helmet, bcryptjs, signed JWT httpOnly cookies
 
 ---
@@ -48,9 +48,11 @@ PORT=3000
 SESSION_SECRET=your-random-secret-key-at-least-32-characters
 NODE_ENV=production
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/printdrop
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
+GOOGLE_CLIENT_ID=your-oauth-client-id
+GOOGLE_CLIENT_SECRET=your-oauth-client-secret
+GOOGLE_REDIRECT_URI=http://localhost
+GOOGLE_REFRESH_TOKEN=your-oauth-refresh-token
+GOOGLE_DRIVE_FOLDER_ID=
 UPLOAD_TTL_MINUTES=30
 BASE_URL=http://localhost:3000
 MAX_UPLOAD_FILES=10
@@ -83,16 +85,30 @@ also provides a backup download link.
 
 ### Deploy to Vercel
 1. Create a MongoDB Atlas cluster and allow Vercel's outbound access (or use `0.0.0.0/0` with a strong database user).
-2. Create a Cloudinary account and copy its cloud name, API key, and API secret.
+2. Create a Google Cloud OAuth client and obtain a Drive refresh token (steps below).
 3. Import this repository into Vercel. Add every variable from `.env.example` in Project Settings
    (use a random `SESSION_SECRET` of at least 32 characters), then deploy. `vercel.json` exports
    `server.js` as the serverless handler.
 4. Set `BASE_URL` to the deployed HTTPS URL so generated QR codes point to the right shop.
 
-Uploaded files are streamed to Cloudinary and deleted there when printed, deleted, when an account
+Uploaded files are streamed to Google Drive as private files and deleted there by Drive file ID when printed, deleted, when an account
 is removed, or during opportunistic cleanup on incoming requests. For low-traffic deployments,
 schedule regular traffic (or add a separately protected Vercel Cron endpoint) if strict TTL timing
 is required.
+
+### Google Drive OAuth setup
+1. In [Google Cloud Console](https://console.cloud.google.com/), create/select a project,
+   enable **Google Drive API**, configure the OAuth consent screen, and add your account as a
+   test user while the app is in Testing.
+2. Create an OAuth **Web application** client and add the exact `GOOGLE_REDIRECT_URI`
+   (for local setup, `http://localhost`) as an authorized redirect URI.
+3. Generate an authorization URL with scope
+   `https://www.googleapis.com/auth/drive`, authorize it as the Drive account that should own
+   uploads, and exchange the returned code for tokens using the same client. Store the returned
+   `refresh_token` as `GOOGLE_REFRESH_TOKEN`; never expose it to the browser. Google's OAuth
+   Playground can perform this exchange when configured with your client credentials.
+4. Optionally create a Drive folder and put its ID in `GOOGLE_DRIVE_FOLDER_ID`. Do not change
+   sharing: files are private by default and the app uses authenticated Drive links.
 
 ---
 

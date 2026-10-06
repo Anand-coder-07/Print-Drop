@@ -1,5 +1,5 @@
 const { Upload } = require('../db');
-const { deleteFile } = require('./cloudinary');
+const { deleteFile } = require('./googleDrive');
 async function cleanupExpiredUploads(ttlMinutes = +(process.env.UPLOAD_TTL_MINUTES || 30)) {
   const cutoff = new Date(Date.now() - ttlMinutes * 60000);
   const expired = await Upload.find({ created_at: { $lt: cutoff } });
