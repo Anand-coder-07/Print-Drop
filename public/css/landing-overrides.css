@@ -1,0 +1,31 @@
+.site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  width: 100%;
+  max-width: none;
+  padding-left: max(32px, calc((100% - 1176px) / 2));
+  padding-right: max(32px, calc((100% - 1176px) / 2));
+  background: transparent;
+  transition: background .25s ease, box-shadow .25s ease, backdrop-filter .25s ease;
+}
+
+.site-header.is-scrolled {
+  background: rgba(247, 245, 239, .82);
+  box-shadow: 0 1px 0 rgba(23, 33, 39, .08), 0 10px 28px rgba(23, 33, 39, .06);
+  backdrop-filter: blur(16px);
+}
+
+.hero {
+  padding-top: 155px;
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .hero {
+    padding-top: 125px;
+  }
+}
