@@ -169,24 +169,35 @@
   }
 
   // --- Upload ---
-  function driveUpload(file, params, token, onProgress) {
+  async function driveUpload(file, params, token, onProgress) {
+    const sessionResponse = await fetch('/api/upload/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, upload_id: params.upload_id })
+    });
+    const session = await sessionResponse.json();
+    if (!sessionResponse.ok) throw new Error(session.error || 'Unable to start file upload.');
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      const endpoint = '/api/upload/file';
-      const body = new FormData();
-      body.append('file', file);
-      body.append('token', token);
-      body.append('upload_id', params.upload_id);
       xhr.upload.onprogress = e => e.lengthComputable && onProgress(e.loaded);
       xhr.onload = () => {
         let data;
         try { data = JSON.parse(xhr.responseText); } catch { return reject(new Error('Upload returned an invalid response.')); }
-        if (xhr.status >= 200 && xhr.status < 300) resolve(data);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const publicId = data.id || data.public_id;
+          resolve({
+            ...data,
+            upload_id: params.upload_id,
+            public_id: publicId,
+            secure_url: data.webViewLink || `https://drive.google.com/file/d/${publicId}/view`
+          });
+        }
         else reject(new Error(data.error || 'Upload failed.'));
       };
       xhr.onerror = () => reject(new Error('Network error while uploading a file.'));
-      xhr.open('POST', endpoint);
-      xhr.send(body);
+      xhr.open('PUT', session.uploadUrl);
+      xhr.setRequestHeader('Content-Type', file.type || params.fileType);
+      xhr.send(file);
     });
   }
 

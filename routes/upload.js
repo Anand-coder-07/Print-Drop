@@ -3,7 +3,7 @@ const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const { Shop, Upload } = require('../db');
-const { uploadBuffer, deleteFile, driveFileId, isDriveUrl } = require('../utils/googleDrive');
+const { uploadBuffer, createUploadSession, deleteFile, driveFileId, isDriveUrl } = require('../utils/googleDrive');
 const { generateUniqueCode } = require('../utils/codeGenerator');
 const router = express.Router();
 const allowed = { 'application/pdf': '.pdf', 'image/jpeg': '.jpg', 'image/png': '.png' };
@@ -65,6 +65,19 @@ router.post('/complete', async (req, res) => {
     await Promise.all(files.map(file => deleteFile(driveFileId(file.public_id)).catch(() => null)));
     console.error('Upload metadata failed:', e.message);
     res.status(500).json({ error: 'Upload failed. Please try again.' });
+  }
+});
+
+router.post('/session', async (req, res) => {
+  try {
+    const claims = verifyToken(req.body?.token);
+    const expected = (claims.files || []).find(file => file.upload_id === req.body?.upload_id);
+    if (!expected) return res.status(400).json({ error: 'Upload details did not match the signed request.' });
+    const uploadUrl = await createUploadSession({ name: expected.originalName, mimeType: expected.fileType, size: expected.fileSize });
+    res.json({ uploadUrl, upload_id: expected.upload_id });
+  } catch (e) {
+    console.error('Drive upload session failed:', e.message);
+    res.status(500).json({ error: 'Unable to start file upload.' });
   }
 });
 

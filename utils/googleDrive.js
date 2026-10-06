@@ -9,6 +9,14 @@ function drive() {
   return google.drive({ version: 'v3', auth });
 }
 
+function authClient() {
+  const required = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN'];
+  if (required.some(name => !process.env[name])) throw new Error('Google Drive OAuth is not configured.');
+  const auth = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI || 'http://localhost');
+  auth.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
+  return auth;
+}
+
 function folderId() {
   return process.env.GOOGLE_DRIVE_FOLDER_ID || undefined;
 }
@@ -26,6 +34,25 @@ async function uploadBuffer(buffer, { name, mimeType }) {
     resource_type: 'drive',
     file
   };
+}
+
+async function createUploadSession({ name, mimeType, size }) {
+  const auth = authClient();
+  const accessToken = (await auth.getAccessToken()).token;
+  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,mimeType,size,webViewLink,webContentLink', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json; charset=UTF-8',
+      'X-Upload-Content-Type': mimeType,
+      'X-Upload-Content-Length': String(size)
+    },
+    body: JSON.stringify({ name, mimeType, ...(folderId() ? { parents: [folderId()] } : {}) })
+  });
+  if (!response.ok) throw new Error(`Google Drive session failed (${response.status}).`);
+  const location = response.headers.get('location');
+  if (!location) throw new Error('Google Drive did not return an upload session.');
+  return location;
 }
 
 async function deleteFile(fileId) {
@@ -49,4 +76,4 @@ function isDriveUrl(value, id) {
     && driveFileId(value) === id;
 }
 
-module.exports = { uploadBuffer, deleteFile, downloadFile, driveFileId, isDriveUrl };
+module.exports = { uploadBuffer, createUploadSession, deleteFile, downloadFile, driveFileId, isDriveUrl };
