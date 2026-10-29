@@ -58,6 +58,6 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/uploads', require('./routes/dashboard'));
 app.use('/api/shops', require('./routes/shops'));
-app.use((err, req, res, next) => { console.error(err); res.status(500).json({ error: 'Internal server error' }); });
+app.use((err, req, res, next) => { console.error('Unhandled error:', err); res.status(500).json({ error: err.message || 'Internal server error' }); });
 if (require.main === module) { const port = process.env.PORT || 3000; initDb().then(() => app.listen(port, () => console.log(`PrintDrop listening on ${port}`))).catch(err => { console.error(err); process.exit(1); }); }
 module.exports = app;

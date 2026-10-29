@@ -39,8 +39,8 @@ router.post('/signature', async (req, res) => {
     const token = signToken({ shopId: String(shop._id), shop: shop.slug, groupId, files: entries });
     res.json({ token, groupId, files: entries, uploadUrl: '/api/upload/file' });
   } catch (e) {
-    console.error('Upload signature failed:', e.message);
-    res.status(500).json({ error: 'Unable to prepare upload. Please try again.' });
+    console.error('Upload signature failed:', e);
+    res.status(500).json({ error: e.message || 'Unable to prepare upload. Please try again.' });
   }
 });
 
