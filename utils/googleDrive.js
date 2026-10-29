@@ -49,7 +49,15 @@ async function createUploadSession({ name, mimeType, size }) {
     },
     body: JSON.stringify({ name, mimeType, ...(folderId() ? { parents: [folderId()] } : {}) })
   });
-  if (!response.ok) throw new Error(`Google Drive session failed (${response.status}).`);
+  if (!response.ok) {
+    const details = await response.text();
+    let message = `Google Drive session failed (${response.status}).`;
+    try {
+      const data = JSON.parse(details);
+      if (data.error?.message) message += ` ${data.error.message}`;
+    } catch {}
+    throw new Error(message);
+  }
   const location = response.headers.get('location');
   if (!location) throw new Error('Google Drive did not return an upload session.');
   return location;

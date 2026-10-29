@@ -76,9 +76,23 @@ router.post('/session', async (req, res) => {
     const uploadUrl = await createUploadSession({ name: expected.originalName, mimeType: expected.fileType, size: expected.fileSize });
     res.json({ uploadUrl, upload_id: expected.upload_id });
   } catch (e) {
-    console.error('Drive upload session failed:', e.message);
-    res.status(500).json({ error: 'Unable to start file upload.' });
+    console.error('Drive upload session failed:', e);
+    const detail = e.message || 'Unable to start file upload.';
+    res.status(502).json({ error: detail });
   }
+});
+
+router.get('/debug-env', (req, res) => {
+  res.json({
+    hasClientId: !!process.env.GOOGLE_CLIENT_ID,
+    hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+    hasRefreshToken: !!process.env.GOOGLE_REFRESH_TOKEN,
+    hasSessionSecret: !!process.env.SESSION_SECRET,
+    hasFolderId: !!process.env.GOOGLE_DRIVE_FOLDER_ID,
+    redirectUri: process.env.GOOGLE_REDIRECT_URI || '(not set, defaults to http://localhost)',
+    clientIdPrefix: process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.substring(0, 10) + '...' : null,
+    nodeEnv: process.env.NODE_ENV,
+  });
 });
 
 router.post('/chunk', async (req, res) => {
